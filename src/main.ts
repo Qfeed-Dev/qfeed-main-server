@@ -9,7 +9,7 @@ async function bootstrap() {
     .setTitle('qfeed API')
     .setDescription('qfeed staging API description')
     .setVersion('1.0')
-    .addTag('account')
+    .addBearerAuth( { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT',)
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);
