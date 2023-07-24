@@ -7,13 +7,14 @@ import { TypeOrmExModule } from 'src/db/typeorm-ex.module';
 import { AccountRepository } from './account.repository';
 import { JwtStrategy } from './jwt.strategy';
 
+
 @Module({
   exports: [AccountService, JwtStrategy, PassportModule],
   imports: [
     TypeOrmExModule.forCustomRepository([AccountRepository]),
     PassportModule.register({ defaultStrategy: 'jwt'}),
     JwtModule.register({
-      secret: "SECRET_KEY",
+      secret: process.env.SECRET_KEY,
       signOptions:{
         expiresIn: 60 * 60 * 24
       }
