@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { AccountDto, AccountInSignUp, TokenDto } from './account.dto';
 import { AccountService } from './account.service';
@@ -47,5 +47,12 @@ export class AccountController {
         await this.accountService.delete(account.id);
         return {"message": "success"}
     }
+    
+    
+    @ApiOperation({ summary: 'kakao callback' })
+    @Get('/kakao/callback')
+    kakaoLogin(@Query('code') code: string) {
+        return this.accountService.kakaoLogin(code);
+}
 
 }
