@@ -19,13 +19,13 @@ export class AccountService {
         private accountRepository: AccountRepository,
         private jwtService: JwtService,
         private readonly httpService: HttpService
-        ) {}
+    ) {}
         
-        async delete(id: number) : Promise<void> {
-            await this.accountRepository.deleteAccountById(id)
-        }
+    async delete(id: number) : Promise<void> {
+        await this.accountRepository.deleteAccountById(id)
+    }
 
-        async create(AccountInSignUp: AccountInSignUp): Promise<TokenDto> {
+    async create(AccountInSignUp: AccountInSignUp): Promise<TokenDto> {
         const account = await this.accountRepository.createAccount(AccountInSignUp)
         const payload = { id: account.id, email: account.email };
         const accessToken = this.jwtService.sign(payload);
