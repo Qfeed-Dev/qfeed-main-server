@@ -11,9 +11,9 @@ export const TypeORMConfig: TypeOrmModuleOptions = {
     ssl: false, // Use SSL/TLS for the connection
     extra: {
         ssl: {
-        rejectUnauthorized: false, // Set this to true if you have the proper CA certificate.
-        // If you have the CA certificate, provide it as a buffer:
-        // ca: fs.readFileSync('path_to_your_ca_file.pem').toString(),
+            rejectUnauthorized: false, // Set this to true if you have the proper CA certificate.
+            // If you have the CA certificate, provide it as a buffer:
+            // ca: fs.readFileSync('path_to_your_ca_file.pem').toString(),
         },
     },
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
