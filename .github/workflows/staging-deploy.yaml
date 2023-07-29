@@ -1,14 +1,14 @@
 name: Staging Deploy 
 
 on:
-  push:
-    branches:
-      - ci-dev
+  pull_request:
+    types: [closed]
+
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    if: github.event.pull_request.merged == true && github.base_ref == 'main'
     steps:
       - name: Check Out
         uses: actions/checkout@v3
@@ -21,5 +21,9 @@ jobs:
         if: always()
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_PR }}
+          noprefix: false
+          title: ${{ github.event.pull_request.title }}
+          url: ${{ github.event.pull_request.html_url }}
+          description: ${{ github.event.pull_request.body }}
 
       
