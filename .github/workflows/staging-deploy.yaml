@@ -25,9 +25,9 @@ jobs:
           title: ${{ github.event.pull_request.title }}
           url: ${{ github.event.pull_request.html_url }}
           description: |
-            `${{ github.event.pull_request.body }} \n\n
-            ### Triggered by \n
-            ${{ github.actor }}`
-            `
+            ${{ github.event.pull_request.body }}
+            
+            ### Triggered by
+            ${{ github.actor }}
 
       
