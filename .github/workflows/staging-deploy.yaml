@@ -21,13 +21,9 @@ jobs:
         if: always()
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_PR }}
-          nodetail: True
           title: ${{ github.event.pull_request.title }}
           url: ${{ github.event.pull_request.html_url }}
           description: |
             ${{ github.event.pull_request.body }}
-            
-            ### Triggered by
-            ${{ github.actor }}
-
-      
+          color: 0x2D2D2D
+          
