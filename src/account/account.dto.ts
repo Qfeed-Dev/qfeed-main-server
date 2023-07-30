@@ -3,22 +3,18 @@ import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class AccountInSignUp {
 
-    @ApiProperty({
-        example: 'qfeed@qfeed.site',
-        description: '유저 이메일',
-    })
+    @ApiProperty({example: 'qfeed@qfeed.site'})
     @IsEmail()
     readonly email: string;
 
-    @ApiProperty({
-        example: 'password',
-        description: '유저 비밀번호',
-    })
+    @ApiProperty({example: 'password'})
     @IsNotEmpty()
     readonly password: string;
+    
 }
 
 export class AccountInSignIn {
+    
     @ApiProperty({example: 'qfeed@qfeed.site'})
     @IsEmail()
     readonly email: string;
@@ -38,7 +34,7 @@ export class AccountDto {
     id: number;
     
     @ApiProperty({example: "qfeed@qfeed.site"})
-    email: string;
+    email?: string;
 
 }
 

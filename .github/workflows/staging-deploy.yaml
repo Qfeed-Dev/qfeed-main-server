@@ -21,8 +21,9 @@ jobs:
         if: always()
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_PR }}
-          title: ${{ github.event.pull_request.title }}
-          url: ${{ github.event.pull_request.html_url }}
+          noprefix: true
+          title: Staging-API Qfeed
+          url: https://staging-api.qfeed.site
           description: |
             ${{ github.event.pull_request.body }}
           
