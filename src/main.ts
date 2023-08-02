@@ -9,7 +9,12 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors();
+  app.enableCors({
+    origin: true,
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Accept',
+  });
   app.useGlobalPipes(new ValidationPipe());
   const swaggerConfig = new DocumentBuilder()
     .setTitle('qfeed API')
