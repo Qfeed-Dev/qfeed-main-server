@@ -6,7 +6,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/ping')
-  getHello(): string {
+  getHello(): { [key: string]: string } {
     return this.appService.ping();
   }
 }
