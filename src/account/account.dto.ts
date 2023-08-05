@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsUrl, IsDateString, IsEnum, IsOptional, Matches } from 'class-validator';
+import { Gender, SchoolType } from './account.enum';
 
-export class AccountInSignUp {
+export class AccountInSign {
 
     @ApiProperty({example: 'qfeed@qfeed.site'})
     @IsEmail()
+    @IsNotEmpty()
     readonly email: string;
 
     @ApiProperty({example: 'password'})
@@ -13,32 +15,103 @@ export class AccountInSignUp {
     
 }
 
-export class AccountInSignIn {
-    
-    @ApiProperty({example: 'qfeed@qfeed.site'})
-    @IsEmail()
-    readonly email: string;
 
-    @ApiProperty({example: 'password'})
+
+export class AccountInUpdate {
+    
+    @IsOptional()
+    @ApiProperty({example: 'i_like_qfeed_'})
+    @Matches(/^[\w\d_]+$/)
     @IsNotEmpty()
-    readonly password: string;
+    readonly nickname: string; 
+    
+    @IsOptional()
+    @ApiProperty({example: '대학생'})
+    @IsEnum(SchoolType)
+    @IsNotEmpty()
+    readonly schoolType: SchoolType
+
+    @IsOptional()
+    @ApiProperty({example: '큐피대학교'})
+    @IsNotEmpty()
+    readonly schoolName: string;
+
+    @IsOptional()
+    @ApiProperty({example: '20학번'})
+    @IsNotEmpty()
+    readonly grade: string; // 20학번 or 1학년
+
+    @IsOptional()
+    @ApiProperty({example: '컴퓨터공학과'})
+    @IsNotEmpty()
+    readonly class: string; // 컴퓨터공학과 or 1반
+
+    @IsOptional()
+    @ApiProperty({example: '남'})
+    @IsEnum(Gender)
+    @IsNotEmpty()
+    readonly gender: Gender;
+
+    @IsOptional()
+    @ApiProperty({example: '2000-01-01'})
+    @IsDateString()
+    @IsNotEmpty()
+    readonly birthday: Date;
+
+    @IsOptional()
+    @ApiProperty({example: 'https://blog.kakaocdn.net/dn/KdDOI/btrmGgNlqab/qlMwwXNvHSbjN0kFeIoVuK/img.jpg'})
+    @IsUrl()
+    readonly profileImage: URL;
+
+    @IsOptional()
+    @ApiProperty({example: 'https://m.pointcm.co.kr/web/product/medium/202201/748503d29ad558bef05878a7c3e7e987.jpg'})
+    @IsUrl()
+    readonly idCardImage: URL;
+
 }
 
 export class AccountDto {
-    constructor(id: number, email: string) {
-        this.id = id;
-        this.email = email;
+    constructor(partial: Partial<AccountDto>) {
+        Object.assign(this, partial);
     }
     
     @ApiProperty({example: 1})
     id: number;
     
     @ApiProperty({example: "qfeed@qfeed.site"})
-    email?: string;
+    email: string;
+
+    @ApiProperty()
+    nickname: string; // 영어, 숫자, _
+
+    @ApiProperty({example: "대학생"})
+    schoolType: SchoolType
+
+    @ApiProperty({example: "큐피대학교"})
+    schoolName: string;
+
+    @ApiProperty({example: "20학번"})
+    grade: string; // 20학번 or 1학년
+
+    @ApiProperty({example: "컴퓨터공학과"})
+    class: string; // 컴퓨터공학과 or 1반
+
+    @ApiProperty({example: "남"})
+    gender: Gender
+
+    @ApiProperty({example: "2000-01-01"})
+    birthday: Date;
+
+    @ApiProperty({example: ""})
+    profileImage: URL;
+
+    @ApiProperty({example: ""})
+    idCardImage: URL;
 
 }
 
 export class TokenDto {
+
     constructor(token: string, expireTime: Date) {
         this.accessToken = token;
         this.expireTime = expireTime;
