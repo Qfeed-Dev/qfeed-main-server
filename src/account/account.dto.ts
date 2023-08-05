@@ -70,6 +70,24 @@ export class AccountInUpdate {
 
 }
 
+export class checkNickname{
+
+    constructor(nickname: string, abailable: boolean, message: string) {
+        this.nickname = nickname;
+        this.abailable = abailable;
+        this.message = message;
+    }
+
+    @ApiProperty({example: 'like_qfeed'})
+    nickname: string;
+
+    @ApiProperty({example: true})
+    abailable: boolean;
+
+    @ApiProperty({example: '사용 가능한 닉네임 입니다.'})
+    message: string;
+}
+
 export class AccountDto {
     constructor(partial: Partial<AccountDto>) {
         Object.assign(this, partial);
