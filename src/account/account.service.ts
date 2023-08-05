@@ -5,10 +5,10 @@ import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { AccountInSign, AccountInUpdate, TokenDto } from './account.dto';
+import { AccountInSign, AccountInUpdate, TokenDto, checkNickname } from './account.dto';
 import { AccountRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
-import { catchError, map, firstValueFrom, lastValueFrom } from 'rxjs';
+import { map, lastValueFrom } from 'rxjs';
 import { Account } from './account.entity';
 
 
@@ -41,7 +41,19 @@ export class AccountService {
         return account
     }
 
+    async checkNickname(nickname: string): Promise<checkNickname> {   
+        const nicknameRegex = /^[\w\d_]+$/;
+        if (!nicknameRegex.test(nickname)) {
+            return new checkNickname(nickname, false, "닉네임은 영문, 숫자, _ 만 가능합니다.");
+        }
+        const account = await this.accountRepository.findOne({where: {"nickname": nickname}})
+        if(account) {
+            return new checkNickname(nickname, false, "이미 사용중인 닉네임 입니다." );            ;
+        }
+        return new checkNickname(nickname, true, "사용 가능한 닉네임 입니다." );
 
+    }
+    
     async login(AccountInSign: AccountInSign): Promise<TokenDto> {
         const account = await this.accountRepository.getAccountByEmail(AccountInSign.email);
         if(account && (await bcrypt.compare(AccountInSign.password, account.password))) {

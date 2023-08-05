@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { AccountDto, AccountInSign, AccountInUpdate, TokenDto } from './account.dto';
+import { AccountDto, AccountInSign, AccountInUpdate, TokenDto, checkNickname } from './account.dto';
 import { AccountService } from './account.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetAccount } from './get-user.decorator';
@@ -28,7 +28,13 @@ export class AccountController {
     async loginAccount(@Body() AccountInSign: AccountInSign): Promise<TokenDto> {
         return await this.accountService.login(AccountInSign);
     }
-    
+
+    @Get('/check-nickname')
+    @ApiResponse({ status: 200, description: 'Check nickname', type: checkNickname })
+    @ApiOperation({ summary: 'Check nickname' })
+    async checkNickname(@Query('nickname') nickname: string): Promise<checkNickname> {
+        return await this.accountService.checkNickname(nickname);
+    }
     @Get('/me')
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard())

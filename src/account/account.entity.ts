@@ -1,10 +1,19 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique, CreateDateColumn, UpdateDateColumn} from "typeorm";
 import { SchoolType, Gender } from "./account.enum";
 
 
+export class TimeEntity extends BaseEntity {
+    @CreateDateColumn()
+    created_at: Date;
+
+    @UpdateDateColumn()
+    updated_at: Date;
+
+}
+
 @Entity()
 @Unique(['email', 'socialId'])
-export class Account extends BaseEntity {
+export class Account extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -17,7 +26,6 @@ export class Account extends BaseEntity {
     @Column({ nullable: true })
     password: string;
 
-    @Column({ nullable: true })
     @Column({ unique:true, nullable: true })
     nickname: string;
 
