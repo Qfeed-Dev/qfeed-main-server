@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt'
 import { HttpService } from '@nestjs/axios';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { AccountInSignIn, AccountInSignUp, TokenDto } from './account.dto';
+import { AccountInSign, AccountInUpdate, TokenDto } from './account.dto';
 import { AccountRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
-import { lastValueFrom, map } from 'rxjs';
+import { catchError, map, firstValueFrom, lastValueFrom } from 'rxjs';
 import { Account } from './account.entity';
 
 
@@ -26,8 +26,8 @@ export class AccountService {
         await this.accountRepository.deleteAccountById(id)
     }
 
-    async create(AccountInSignUp: AccountInSignUp): Promise<TokenDto> {
-        const account = await this.accountRepository.createAccount(AccountInSignUp)
+    async create(AccountInSign: AccountInSign): Promise<TokenDto> {
+        const account = await this.accountRepository.createAccount(AccountInSign)
         const payload = { id: account.id, email: account.email };
         const accessToken = this.jwtService.sign(payload);
 
@@ -36,9 +36,15 @@ export class AccountService {
         return new TokenDto(accessToken, expireTime);
     }
 
-    async login(AccountInSignIn: AccountInSignIn): Promise<TokenDto> {
-        const account = await this.accountRepository.getAccountByEmail(AccountInSignIn.email);
-        if(account && (await bcrypt.compare(AccountInSignIn.password, account.password))) {
+    async update(id:number, AccountInUpdate: AccountInUpdate): Promise<Account> {
+        const account = await this.accountRepository.updateAccount(id, AccountInUpdate)
+        return account
+    }
+
+
+    async login(AccountInSign: AccountInSign): Promise<TokenDto> {
+        const account = await this.accountRepository.getAccountByEmail(AccountInSign.email);
+        if(account && (await bcrypt.compare(AccountInSign.password, account.password))) {
             const payload = { id: account.id, email: account.email };
             const accessToken = this.jwtService.sign(payload);
 
@@ -51,7 +57,7 @@ export class AccountService {
         }
     }
     
-    private async getKakaoAccessToken(code: string) {
+    private async getKakaoAccessToken(code: string, redirectUrl: string) {
         const requestUrl = 'https://kauth.kakao.com/oauth/token';
         const requestConfig: AxiosRequestConfig = {
             headers: {
@@ -61,20 +67,39 @@ export class AccountService {
         const requestData = {
             'grant_type': 'authorization_code',
             'client_id': process.env.KAKAO_CLIENT_ID,
-            'redirect_uri': `${process.env.BASE_URL}/account/kakao/callback`,
+            'redirect_uri': redirectUrl,
             'code': code,
         }
         const responseData = await lastValueFrom(
             this.httpService.post(requestUrl, requestData, requestConfig).pipe(
                 map((response) => {
                     return response.data;
-                }),
+                    }),
                 )
-                );
-                return responseData.access_token;
-            }
+            );
+        return responseData.access_token;
+    }
             
-    async socialLogin(socialId: string): Promise<TokenDto> {
+    
+    private async getKakaoUserInfo(accessToken: string) {
+        const requestUrl = 'https://kapi.kakao.com/v2/user/me';
+        const requestConfig: AxiosRequestConfig = {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+            }
+          };
+        const responseData = await lastValueFrom(
+            this.httpService.get(requestUrl, requestConfig).pipe(
+                map((response) => {
+                    return response.data;
+                }
+            ),
+        ));
+        return responseData;
+    }
+    
+    private async socialLogin(socialId: string): Promise<TokenDto> {
         let account: Account;
         try {
             account = await this.accountRepository.getAccountBySocialId(socialId);
@@ -90,28 +115,16 @@ export class AccountService {
             return new TokenDto(token, expireTime);
         }
     }
-    private async getKakaoUserInfo(accessToken: string) {
-        const requestUrl = 'https://kapi.kakao.com/v2/user/me';
-        const requestConfig: AxiosRequestConfig = {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-            }
-          };
-        const responseData = await lastValueFrom(
-            this.httpService.get(requestUrl, requestConfig).pipe(
-                map((response) => {
-                    return response.data;
-                }
-            )
-        ));
-        return responseData;
-    }
 
-    async kakaoLogin(code: string): Promise<TokenDto>{
-        const accessToken = await this.getKakaoAccessToken(code);
-        const userInfo = await this.getKakaoUserInfo(accessToken);
-        const token = await this.socialLogin(userInfo.id);
-        return token;
+    async kakaoLogin(code: string, redirectUrl: string = `${process.env.BASE_URL}/account/kakao/callback`): Promise<TokenDto>{
+        try {
+            const accessToken = await this.getKakaoAccessToken(code, redirectUrl);
+            const userInfo = await this.getKakaoUserInfo(accessToken);
+            const token = await this.socialLogin(userInfo.id);
+            return token;
+
+        } catch (error) {
+            throw new BadRequestException('kakao login failed');
+        }
     }
 }
