@@ -136,7 +136,7 @@ export class AccountService {
             return token;
 
         } catch (error) {
-            throw new BadRequestException('kakao login failed');
+            throw new BadRequestException(error.response.data.error_description);
         }
     }
 }
