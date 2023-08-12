@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as AWS from 'aws-sdk';
+import { S3 } from 'aws-sdk';
 
 
 @Injectable()
@@ -11,7 +11,7 @@ export class AppService {
 
   async createPresignedUrl(appName:string, filename: string, filetype: string): Promise<{preSignedUrl: string, imageUrl: string}> {
 
-    const s3 = new AWS.S3({
+    const s3 = new S3({
       region: process.env.AWS_S3_BUCKET_REGION,
       accessKeyId: process.env.AWS_S3_ACCESS_KEY,
       secretAccessKey: process.env.AWS_S3_SECRET_KEY,
