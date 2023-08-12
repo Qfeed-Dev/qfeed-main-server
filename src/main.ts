@@ -13,7 +13,7 @@ async function bootstrap() {
     origin: true,
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['*'],
   });
   app.useGlobalPipes(new ValidationPipe());
   const swaggerConfig = new DocumentBuilder()
