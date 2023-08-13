@@ -39,7 +39,7 @@ export class AccountController {
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard())
     @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
-    @ApiOperation({ summary: 'me' })
+    @ApiOperation({ summary: 'me summary' })
     getAccount(@GetAccount() account: Account): AccountDto {
         return new AccountDto(account);
     }
@@ -58,7 +58,7 @@ export class AccountController {
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard())
     @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
-    @ApiOperation({ summary: 'me' })
+    @ApiOperation({ summary: 'me update' })
     async updateAccount(@GetAccount() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
         const updatedAccount = await this.accountService.update(account.id, AccountInUpdate);
         return new AccountDto(updatedAccount);

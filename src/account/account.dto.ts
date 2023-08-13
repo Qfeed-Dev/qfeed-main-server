@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsUrl, IsDateString, IsEnum, IsOptional, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsUrl, IsDateString, IsEnum, IsOptional, Matches, Length, IsNumberString } from 'class-validator';
 import { Gender, SchoolType } from './account.enum';
+import { Account } from './account.entity';
 
 export class AccountInSign {
 
@@ -31,12 +32,15 @@ export class AccountInUpdate {
 
     @IsOptional()
     @ApiProperty({example: '01011112222'})
+    @Length(11, 11)
+    @IsNumberString()
     @IsNotEmpty()
     readonly phone: string;
     
     @IsOptional()
-    @ApiProperty({example: 'i_like_qfeed_'})
+    @ApiProperty({example: 'ilikeqfeed'})
     @Matches(/^[\w\d_]+$/)
+    @Length(4, 12)
     @IsNotEmpty()
     readonly nickname: string; 
     
@@ -87,9 +91,9 @@ export class AccountInUpdate {
 
 export class checkNickname{
 
-    constructor(nickname: string, abailable: boolean, message: string) {
+    constructor(nickname: string, available: boolean, message: string) {
         this.nickname = nickname;
-        this.abailable = abailable;
+        this.available = available;
         this.message = message;
     }
 
@@ -97,15 +101,27 @@ export class checkNickname{
     nickname: string;
 
     @ApiProperty({example: true})
-    abailable: boolean;
+    available: boolean;
 
     @ApiProperty({example: '사용 가능한 닉네임 입니다.'})
     message: string;
 }
 
 export class AccountDto {
-    constructor(partial: Partial<AccountDto>) {
-        Object.assign(this, partial);
+    constructor(account: Account) {
+        this.id = account.id;
+        this.email = account.email;
+        this.name = account.name;
+        this.phone = account.phone;
+        this.nickname = account.nickname;
+        this.schoolType = account.schoolType;
+        this.schoolName = account.schoolName;
+        this.grade = account.grade;
+        this.class = account.class;
+        this.gender =account.gender;
+        this.birthday = account.birthday;
+        this.profileImage = account.profileImage;
+        this.idCardImage = account.idCardImage; 
     }
     
     @ApiProperty({example: 1})
@@ -116,6 +132,9 @@ export class AccountDto {
 
     @ApiProperty({example: "김피드"})
     name: string;
+
+    @ApiProperty({example: "01011112222"})
+    phone: string;
 
     @ApiProperty()
     nickname: string; // 영어, 숫자, _

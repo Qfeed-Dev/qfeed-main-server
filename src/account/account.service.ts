@@ -43,12 +43,16 @@ export class AccountService {
 
     async checkNickname(nickname: string): Promise<checkNickname> {   
         const nicknameRegex = /^[\w\d_]+$/;
+        const account = await this.accountRepository.findOne({where: {"nickname": nickname}})
+        
+        if (nickname.length < 4 || nickname.length > 12) {
+            return new checkNickname(nickname, false, "닉네임은 4자 이상 12자 이하만 가능합니다.");
+        }
         if (!nicknameRegex.test(nickname)) {
             return new checkNickname(nickname, false, "닉네임은 영문, 숫자, _ 만 가능합니다.");
         }
-        const account = await this.accountRepository.findOne({where: {"nickname": nickname}})
         if(account) {
-            return new checkNickname(nickname, false, "이미 사용중인 닉네임 입니다." );            ;
+            return new checkNickname(nickname, false, "이미 사용중인 닉네임 입니다." );            
         }
         return new checkNickname(nickname, true, "사용 가능한 닉네임 입니다." );
 
