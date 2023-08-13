@@ -33,7 +33,7 @@ export class AccountRepository extends Repository<Account> {
             return account;
         } catch (error) {
             if(error.code === '23505') {
-                throw new ConflictException('Existing socialId');
+                throw new ConflictException('Existing socialInfo');
             } else {
                 throw new InternalServerErrorException('signup failed');
             }
@@ -63,6 +63,14 @@ export class AccountRepository extends Repository<Account> {
             throw new NotFoundException(`Can't find account with socialId: ${socialId}`);
         }
         return account;
+    }
+
+    async fetchAccounts(offset: number, limit: number): Promise<Account[]> {
+        const accounts = await this.find({
+            skip: offset,
+            take: limit,
+          });
+        return accounts;
     }
 
     async updateAccount(id: number, AccountInUpdate: AccountInUpdate): Promise<Account> {
