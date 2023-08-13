@@ -20,6 +20,21 @@ export class AccountInSign {
 export class AccountInUpdate {
     
     @IsOptional()
+    @ApiProperty({example: 'qfeed@qfeed.site'})
+    @IsNotEmpty()
+    readonly email: string;
+
+    @IsOptional()
+    @ApiProperty({example: '김피드'})
+    @IsNotEmpty()
+    readonly name: string;
+
+    @IsOptional()
+    @ApiProperty({example: '01011112222'})
+    @IsNotEmpty()
+    readonly phone: string;
+    
+    @IsOptional()
     @ApiProperty({example: 'i_like_qfeed_'})
     @Matches(/^[\w\d_]+$/)
     @IsNotEmpty()
@@ -98,6 +113,9 @@ export class AccountDto {
     
     @ApiProperty({example: "qfeed@qfeed.site"})
     email: string;
+
+    @ApiProperty({example: "김피드"})
+    name: string;
 
     @ApiProperty()
     nickname: string; // 영어, 숫자, _

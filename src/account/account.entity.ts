@@ -26,6 +26,12 @@ export class Account extends TimeEntity {
     @Column({ nullable: true })
     password: string;
 
+    @Column({ nullable: true })
+    name: string;
+
+    @Column({ nullable: true })
+    phone: string;
+
     @Column({ unique:true, nullable: true })
     nickname: string;
 
