@@ -26,9 +26,9 @@ export class AccountRepository extends Repository<Account> {
         }
     }
 
-    async createAccountBySocialId(socialId: string): Promise<Account> {
+    async createAccountBySocialInfo(socialId: string, socialEmail: string): Promise<Account> {
         try {
-            const account = this.create({"socialId": socialId});  
+            const account = this.create({"socialId": socialId, "email": socialEmail});  
             await this.save(account);
             return account;
         } catch (error) {

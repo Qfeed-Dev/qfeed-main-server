@@ -43,12 +43,16 @@ export class AccountService {
 
     async checkNickname(nickname: string): Promise<checkNickname> {   
         const nicknameRegex = /^[\w\d_]+$/;
+        const account = await this.accountRepository.findOne({where: {"nickname": nickname}})
+        
+        if (nickname.length < 4 || nickname.length > 12) {
+            return new checkNickname(nickname, false, "닉네임은 4자 이상 12자 이하만 가능합니다.");
+        }
         if (!nicknameRegex.test(nickname)) {
             return new checkNickname(nickname, false, "닉네임은 영문, 숫자, _ 만 가능합니다.");
         }
-        const account = await this.accountRepository.findOne({where: {"nickname": nickname}})
         if(account) {
-            return new checkNickname(nickname, false, "이미 사용중인 닉네임 입니다." );            ;
+            return new checkNickname(nickname, false, "이미 사용중인 닉네임 입니다." );            
         }
         return new checkNickname(nickname, true, "사용 가능한 닉네임 입니다." );
 
@@ -111,13 +115,13 @@ export class AccountService {
         return responseData;
     }
     
-    private async socialLogin(socialId: string): Promise<TokenDto> {
+    private async socialLogin(socialId: string, socialEmail: string): Promise<TokenDto> {
         let account: Account;
         try {
             account = await this.accountRepository.getAccountBySocialId(socialId);
         }
         catch (error){
-            account = await this.accountRepository.createAccountBySocialId(socialId);
+            account = await this.accountRepository.createAccountBySocialInfo(socialId, socialEmail);
         }
         finally{
             const payload = { id: account.id };
@@ -132,7 +136,7 @@ export class AccountService {
         try {
             const accessToken = await this.getKakaoAccessToken(code, redirectUrl);
             const userInfo = await this.getKakaoUserInfo(accessToken);
-            const token = await this.socialLogin(userInfo.id);
+            const token = await this.socialLogin(userInfo.id, userInfo.kakao_account.email);
             return token;
 
         } catch (error) {
