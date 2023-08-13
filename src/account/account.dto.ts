@@ -83,6 +83,10 @@ export class AccountInUpdate {
 
 }
 
+
+
+
+
 export class checkNickname{
 
     constructor(nickname: string, available: boolean, message: string) {
@@ -159,6 +163,20 @@ export class AccountDto {
 
 }
 
+export class AccountsResponse {
+    constructor(data: AccountDto[], count: number) {
+        this.count = count;
+        this.data = data;
+    }
+
+    @ApiProperty({example: 20})
+    count: number;
+
+    @ApiProperty()
+    data: AccountDto[];
+
+    
+}
 export class TokenDto {
 
     constructor(token: string, expireTime: Date) {

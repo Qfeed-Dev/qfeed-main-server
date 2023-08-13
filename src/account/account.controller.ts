@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
-import { AccountDto, AccountInSign, AccountInUpdate, TokenDto, checkNickname } from './account.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { AccountDto, AccountInSign, AccountInUpdate, AccountsResponse, TokenDto, checkNickname } from './account.dto';
 import { AccountService } from './account.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetAccount } from './get-user.decorator';
@@ -35,6 +35,7 @@ export class AccountController {
     async checkNickname(@Query('nickname') nickname: string): Promise<checkNickname> {
         return await this.accountService.checkNickname(nickname);
     }
+
     @Get('/me')
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard())
@@ -42,6 +43,20 @@ export class AccountController {
     @ApiOperation({ summary: 'me summary' })
     getAccount(@GetAccount() account: Account): AccountDto {
         return new AccountDto(account);
+    }
+
+
+
+    @Get('/fetch')
+    @ApiResponse({ status: 200, description: 'fetch users', type: AccountsResponse })
+    @ApiOperation({ summary: 'fetch users' })
+    @ApiQuery({ name: 'offset', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    async fetchUsers(
+        @Query('offset') offset: number = 0,
+        @Query('limit') limit: number = 20,
+    ): Promise<AccountsResponse> {
+        return await this.accountService.fetch(offset, limit);
     }
 
     @Delete('me/hard-delete')
@@ -54,11 +69,11 @@ export class AccountController {
         return {"message": "success"}
     }
 
-    @Patch('/me')
+    @ApiOperation({ summary: 'me update' })
+    @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard())
-    @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
-    @ApiOperation({ summary: 'me update' })
+    @Patch('/me')
     async updateAccount(@GetAccount() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
         const updatedAccount = await this.accountService.update(account.id, AccountInUpdate);
         return new AccountDto(updatedAccount);
@@ -66,14 +81,22 @@ export class AccountController {
     
     @ApiOperation({ summary: 'kakao login' })
     @Get('/kakao/login')
-    kakaoLogin(@Query('code') code: string, @Query('redirectUrl') redirectUrl: string) {
-        return this.accountService.kakaoLogin(code, redirectUrl);
+    async kakaoLogin(@Query('code') code: string, @Query('redirectUrl') redirectUrl: string) {
+        return await this.accountService.kakaoLogin(code, redirectUrl);
     }
     
     @ApiOperation({ summary: 'kakao callback' })
     @Get('/kakao/callback')
-    kakaocallback(@Query('code') code: string) {
-        return this.accountService.kakaoLogin(code);
+    async kakaocallback(@Query('code') code: string) {
+        return await this.accountService.kakaoLogin(code);
+    }
+
+    @ApiOperation({ summary: 'get user' })
+    @ApiResponse({ status: 200, description: 'Account info about target user', type: AccountDto })
+    @Get('/:id')
+    async getUser(@Query('id') id: number): Promise<AccountDto>  {
+        const account = await this.accountService.getAccountById(id);
+        return new AccountDto(account);
     }
 
 
