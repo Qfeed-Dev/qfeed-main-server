@@ -115,13 +115,13 @@ export class AccountService {
         return responseData;
     }
     
-    private async socialLogin(socialId: string): Promise<TokenDto> {
+    private async socialLogin(socialId: string, socialEmail: string): Promise<TokenDto> {
         let account: Account;
         try {
             account = await this.accountRepository.getAccountBySocialId(socialId);
         }
         catch (error){
-            account = await this.accountRepository.createAccountBySocialId(socialId);
+            account = await this.accountRepository.createAccountBySocialInfo(socialId, socialEmail);
         }
         finally{
             const payload = { id: account.id };
@@ -136,7 +136,7 @@ export class AccountService {
         try {
             const accessToken = await this.getKakaoAccessToken(code, redirectUrl);
             const userInfo = await this.getKakaoUserInfo(accessToken);
-            const token = await this.socialLogin(userInfo.id);
+            const token = await this.socialLogin(userInfo.id, userInfo.kakao_account.email);
             return token;
 
         } catch (error) {
