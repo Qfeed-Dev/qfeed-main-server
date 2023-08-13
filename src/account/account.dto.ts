@@ -17,13 +17,7 @@ export class AccountInSign {
 }
 
 
-
 export class AccountInUpdate {
-    
-    @IsOptional()
-    @ApiProperty({example: 'qfeed@qfeed.site'})
-    @IsNotEmpty()
-    readonly email: string;
 
     @IsOptional()
     @ApiProperty({example: '김피드'})
