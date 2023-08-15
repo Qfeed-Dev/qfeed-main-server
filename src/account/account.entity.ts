@@ -1,5 +1,6 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique, CreateDateColumn, UpdateDateColumn} from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
 import { SchoolType, Gender } from "./account.enum";
+import { Question } from "src/question/question.entity";
 
 
 export class TimeEntity extends BaseEntity {
@@ -8,7 +9,6 @@ export class TimeEntity extends BaseEntity {
 
     @UpdateDateColumn()
     updated_at: Date;
-
 }
 
 @Entity()
@@ -58,5 +58,8 @@ export class Account extends TimeEntity {
 
     @Column({type: 'varchar', nullable: true })
     idCardImage: URL;
+
+    @OneToMany(() => Question, (question) => question.owner)
+    questions: Question[]
 
 }

@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiQuery } 
 import { AccountDto, AccountInSign, AccountInUpdate, AccountsResponse, TokenDto, checkNickname } from './account.dto';
 import { AccountService } from './account.service';
 import { AuthGuard } from '@nestjs/passport';
-import { GetAccount } from './get-user.decorator';
+import { CurrentUser } from './get-user.decorator';
 import { Account } from './account.entity';
 
 
@@ -41,7 +41,7 @@ export class AccountController {
     @UseGuards(AuthGuard())
     @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
     @ApiOperation({ summary: 'me summary' })
-    getAccount(@GetAccount() account: Account): AccountDto {
+    getAccount(@CurrentUser() account: Account): AccountDto {
         return new AccountDto(account);
     }
 
@@ -64,7 +64,7 @@ export class AccountController {
     @UseGuards(AuthGuard())
     @ApiResponse({ status: 200, description: 'Hard Delete Account' })
     @ApiOperation({ summary: 'delete' })
-    async hardDeleteAccount(@GetAccount() account: Account): Promise<any> {
+    async hardDeleteAccount(@CurrentUser() account: Account): Promise<any> {
         await this.accountService.delete(account.id);
         return {"message": "success"}
     }
@@ -74,7 +74,7 @@ export class AccountController {
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard())
     @Patch('/me')
-    async updateAccount(@GetAccount() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
+    async updateAccount(@CurrentUser() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
         const updatedAccount = await this.accountService.update(account.id, AccountInUpdate);
         return new AccountDto(updatedAccount);
     }
