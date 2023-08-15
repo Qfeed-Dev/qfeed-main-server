@@ -1,15 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Length, IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf } from 'class-validator';
 import { Question } from './question.entity';
 
 
 export class QuestionInCreate {
+    
+    @ApiProperty({example: false, default: false})
+    isOfficial: boolean;
 
     @ApiProperty({example: '질문 제목'})
     @IsNotEmpty()
     title: string;
 
     @ApiProperty({example: ['투표 선택지1', '투표 선택지2']})
+    @ValidateIf((obj) => !obj.isOfficial)
     @IsArray()
     @ArrayMinSize(1)
     @ArrayMaxSize(6)
@@ -18,8 +22,6 @@ export class QuestionInCreate {
     @ApiProperty({example: 'https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/github.png'})
     backgroundImage: URL;
 
-    @ApiProperty({example: false, default: false})
-    isOfficial: boolean;
 
     @ApiProperty({example: false, default: false})
     isBlind: boolean;

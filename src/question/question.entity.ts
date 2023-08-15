@@ -8,7 +8,7 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
-    ManyToOne
+    ManyToOne,
  } from "typeorm";
 
 
@@ -41,7 +41,7 @@ export class Question extends TimeEntity {
     @Column({ default: false })
     isOfficial: boolean;
 
-    @Column({ default: false})
+    @Column({ default: false })
     isBlind: boolean;
 
 }
