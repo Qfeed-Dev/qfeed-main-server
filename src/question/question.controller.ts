@@ -38,5 +38,14 @@ export class QuestionController {
         return await this.questionService.fetch(offset, limit);
     }
     
+    @ApiOperation({ summary: 'get question by id' })
+    @ApiResponse({ status: 200,  type: QuestionDto })
+    @Get('/:id')
+    async getQuestionById(
+        @Query('id') id: number,
+    ) {
+        const question = await this.questionService.getQuestionById(id);
+        return new QuestionDto(question);
+    }
 
 }
