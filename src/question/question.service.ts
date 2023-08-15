@@ -20,8 +20,6 @@ export class QuestionService {
 
     async fetch(offset: number, limit: number): Promise<QuestionsResponse> {
         const questions = await this.questionRepository.fetchQuestions(offset, limit);
-        console.log(questions)
-
         const count = await this.questionRepository.count();
 
         return new QuestionsResponse(

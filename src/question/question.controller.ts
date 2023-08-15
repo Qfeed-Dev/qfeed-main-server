@@ -45,6 +45,7 @@ export class QuestionController {
         @Query('id') id: number,
     ) {
         const question = await this.questionService.getQuestionById(id);
+        console.log(question)
         return new QuestionDto(question);
     }
 

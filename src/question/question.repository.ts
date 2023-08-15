@@ -33,7 +33,10 @@ export class QuestionRepository extends Repository<Question> {
     }
 
     async getQuestionById(id: number): Promise<Question> {
-        const question = await this.findOne({where: {"id": id}})
+        const question = await this.findOne({
+            where: {"id": id},
+            relations: ['owner']
+        })
         if(question) {
             return question;
         } else {
