@@ -5,10 +5,10 @@ import { Question } from "src/question/question.entity";
 
 export class TimeEntity extends BaseEntity {
     @CreateDateColumn()
-    created_at: Date;
+    createdAt: Date;
 
     @UpdateDateColumn()
-    updated_at: Date;
+    updatedAt: Date;
 }
 
 @Entity()
