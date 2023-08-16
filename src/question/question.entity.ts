@@ -1,5 +1,3 @@
-
-
 import { Account } from "src/account/account.entity";
 import { 
     BaseEntity, 
@@ -8,16 +6,17 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
-    ManyToOne
+    ManyToOne,
+    OneToMany,
  } from "typeorm";
 
 
 export class TimeEntity extends BaseEntity {
     @CreateDateColumn()
-    created_at: Date;
+    createdAt: Date;
 
     @UpdateDateColumn()
-    updated_at: Date;
+    updatedAt: Date;
 }
 
 
@@ -41,17 +40,20 @@ export class Question extends TimeEntity {
     @Column({ default: false })
     isOfficial: boolean;
 
-    @Column({ default: false})
+    @Column({ default: false })
     isBlind: boolean;
+
+    @OneToMany(() => Choice, (choice) => choice.question)
+    choices: Choice[]
 
 }
 
-
+@Entity()
 export class Choice extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Question, (question) => question.id)
+    @ManyToOne(() => Question, (question) => question.choices)
     question: Question
 
     @ManyToOne(() => Account, (user) => user.id)
