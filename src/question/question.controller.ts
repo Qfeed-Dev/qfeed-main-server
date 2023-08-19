@@ -77,6 +77,7 @@ export class QuestionController {
         @Body() choiceInCreate: ChoiceInCreate,
     ) {
         const choice = await this.questionService.createChoice(user, questionId, choiceInCreate.value);
+        await this.questionService.updateHistory(user, choice.question);
         return new ChoiceDto(choice);
     }
 

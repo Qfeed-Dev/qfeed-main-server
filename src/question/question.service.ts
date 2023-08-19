@@ -4,7 +4,6 @@ import { ChoiceRepository, QuestionHistoryRepository, QuestionRepository } from 
 import { Account } from 'src/account/account.entity';
 import { Choice, Question, QuestionHistory } from './question.entity';
 import { ChoiceResponse, QuestionDto, QuestionInCreate, QuestionsResponse } from './question.dto';
-import { In } from 'typeorm';
 
 
 @Injectable()
@@ -43,7 +42,8 @@ export class QuestionService {
 
     async createChoice(user: Account, questionId: number, value: string): Promise<Choice> {
         const question = await this.questionRepository.getQuestionById(questionId);
-        return this.choiceRepository.createChoice(user, question, value);
+        const choice = this.choiceRepository.createChoice(user, question, value);
+        return choice;
     }
 
     async fetchChoices(userId: number, questionId: number): Promise<ChoiceResponse[]> {
@@ -56,6 +56,11 @@ export class QuestionService {
 
     async getOrCreateHistory(user: Account, question: Question): Promise<QuestionHistory> {
         const history = await this.questionHistoryRepository.getOrCreateHistory(user, question);
+        return history;
+    }
+
+    async updateHistory(user: Account, question: Question): Promise<QuestionHistory> {
+        const history = await this.questionHistoryRepository.updateHistory(user, question);
         return history;
     }
 

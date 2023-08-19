@@ -133,4 +133,20 @@ export class QuestionHistoryRepository extends Repository<QuestionHistory> {
         }
     }
 
+    async updateHistory(user: Account, question: Question): Promise<QuestionHistory> {
+        const history = await this.findOne({
+            where: {
+                user: { id: user.id },
+                question: { id: question.id },
+            }
+        })
+        if(history) {
+            history.isChoiced = true;
+            return await this.save(history);
+        } else {
+            this.create({ user, question, isChoiced: true });
+            return await this.save({ user, question });
+        }
+    }
+
 }
