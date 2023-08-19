@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ChoiceRepository, ViewHistoryRepository, QuestionRepository } from './question.repository';
 import { Account } from 'src/account/account.entity';
 import { Choice, Question, ViewHistory } from './question.entity';
-import { ChoiceResponse, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
+import { QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
 
 
 @Injectable()
@@ -46,9 +46,6 @@ export class QuestionService {
         return choice;
     }
 
-    // async fetchChoices(userId: number, questionId: number): Promise<ChoiceResponse[]> {
-    //     return await this.choiceRepository.fetchChoices(userId, questionId);
-    // }
 
     async getChoiceById(questionId: number, id: number): Promise<Choice> {
         return await this.choiceRepository.getChoiceById(questionId, id);

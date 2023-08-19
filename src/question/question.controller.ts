@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
-import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, ChoiceResponse } from './question.dto';
+import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto } from './question.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
@@ -54,17 +54,6 @@ export class QuestionController {
         await this.questionService.getOrCreateViewHistory(user, question);
         return new QuestionDto(question);
     }
-
-
-    // @ApiOperation({ summary: 'fetch choice' })
-    // @ApiResponse({ status: 200, type: [ChoiceResponse] })
-    // @ApiQuery({ name: 'questionId', required: true, type: Number })
-    // @ApiBearerAuth('JWT')
-    // @UseGuards(AuthGuard('jwt'))
-    // @Get('/:questionId/choices')
-    // async fetchChoices(@CurrentUser() user: Account, @Query('questionId') questionId: number): Promise<ChoiceResponse[]> {
-    //     return await this.questionService.fetchChoices(user.id, questionId);
-    // }
 
     @ApiOperation({ summary: 'create choice' })
     @ApiResponse({ status: 201 })

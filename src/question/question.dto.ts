@@ -192,24 +192,7 @@ export class ChoiceDto {
     
 }
 
-export class ChoiceResponse {
-        
-    constructor( value: string, count: number, userChoice: boolean ) {
-        this.value = value;
-        this.count = count;
-        this.userChoice = userChoice;
-    }
 
-    @ApiProperty({example: '투표 선택지1'})
-    value: string;
-
-    @ApiProperty({example: 1})
-    count: number;
-
-    @ApiProperty({example: true})
-    userChoice: boolean;
-    
-}
 
 export class ViewHistoryDto {
         
