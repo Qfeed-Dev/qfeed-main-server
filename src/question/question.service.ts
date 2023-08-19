@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChoiceRepository, QuestionHistoryRepository, QuestionRepository } from './question.repository';
+import { ChoiceRepository, ViewHistoryRepository, QuestionRepository } from './question.repository';
 import { Account } from 'src/account/account.entity';
-import { Choice, Question, QuestionHistory } from './question.entity';
-import { ChoiceResponse, QuestionDto, QuestionInCreate, QuestionsResponse } from './question.dto';
+import { Choice, Question, ViewHistory } from './question.entity';
+import { ChoiceResponse, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
 
 
 @Injectable()
@@ -16,8 +16,8 @@ export class QuestionService {
         @InjectRepository(ChoiceRepository)
         private choiceRepository: ChoiceRepository,
 
-        @InjectRepository(QuestionHistoryRepository)
-        private questionHistoryRepository: QuestionHistoryRepository,
+        @InjectRepository(ViewHistoryRepository)
+        private questionHistoryRepository: ViewHistoryRepository,
 
     ) {}
     
@@ -26,12 +26,12 @@ export class QuestionService {
     }
 
     async fetchQuestions(user: Account, offset: number, limit: number): Promise<QuestionsResponse> {
-        const questions = await this.questionRepository.fetchQuestions(user, offset, limit);
+        const questions = await this.questionRepository.fetchQuestions(offset, limit);
         const count = await this.questionRepository.count();
         
         return new QuestionsResponse(
             count,
-            questions.map((question: Question) => new QuestionDto(question))
+            questions.map((question: Question) => new QuestionFetchDto(user.id, question))
         );
     }
 
@@ -46,22 +46,17 @@ export class QuestionService {
         return choice;
     }
 
-    async fetchChoices(userId: number, questionId: number): Promise<ChoiceResponse[]> {
-        return await this.choiceRepository.fetchChoices(userId, questionId);
-    }
+    // async fetchChoices(userId: number, questionId: number): Promise<ChoiceResponse[]> {
+    //     return await this.choiceRepository.fetchChoices(userId, questionId);
+    // }
 
     async getChoiceById(questionId: number, id: number): Promise<Choice> {
         return await this.choiceRepository.getChoiceById(questionId, id);
     }
 
-    async getOrCreateHistory(user: Account, question: Question): Promise<QuestionHistory> {
-        const history = await this.questionHistoryRepository.getOrCreateHistory(user, question);
-        return history;
-    }
-
-    async updateHistory(user: Account, question: Question): Promise<QuestionHistory> {
-        const history = await this.questionHistoryRepository.updateHistory(user, question);
-        return history;
+    async getOrCreateViewHistory(user: Account, question: Question): Promise<ViewHistory> {
+        const viewHistory = await this.questionHistoryRepository.getOrCreateViewHistory(user, question);
+        return viewHistory;
     }
 
 

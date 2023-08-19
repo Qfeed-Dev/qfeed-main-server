@@ -163,6 +163,25 @@ export class AccountDto {
 
 }
 
+
+export class UserDto {
+    constructor(account: Account) {
+        this.id = account.id;
+        this.nickname = account.nickname;
+        this.profileImage = account.profileImage;
+    }
+
+    @ApiProperty({example: 1})
+    id: number;
+
+    @ApiProperty({example: "김피드"})
+    nickname: string;
+
+    @ApiProperty({example: "https://blog.kakaocdn.net/dn/KdDOI/btrmGgNlqab/qlMwwXNvHSbjN0kFeIoVuK/img.jpg"})
+    profileImage: URL;
+}
+
+
 export class AccountsResponse {
     constructor(data: AccountDto[], count: number) {
         this.count = count;
@@ -175,7 +194,6 @@ export class AccountsResponse {
     @ApiProperty()
     data: AccountDto[];
 
-    
 }
 export class TokenDto {
 

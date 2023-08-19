@@ -51,20 +51,20 @@ export class QuestionController {
         @Query('id') id: number,
     ) {
         const question = await this.questionService.getQuestionById(id);
-        await this.questionService.getOrCreateHistory(user, question);
+        await this.questionService.getOrCreateViewHistory(user, question);
         return new QuestionDto(question);
     }
 
 
-    @ApiOperation({ summary: 'fetch choice' })
-    @ApiResponse({ status: 200, type: [ChoiceResponse] })
-    @ApiQuery({ name: 'questionId', required: true, type: Number })
-    @ApiBearerAuth('JWT')
-    @UseGuards(AuthGuard('jwt'))
-    @Get('/:questionId/choices')
-    async fetchChoices(@CurrentUser() user: Account, @Query('questionId') questionId: number): Promise<ChoiceResponse[]> {
-        return await this.questionService.fetchChoices(user.id, questionId);
-    }
+    // @ApiOperation({ summary: 'fetch choice' })
+    // @ApiResponse({ status: 200, type: [ChoiceResponse] })
+    // @ApiQuery({ name: 'questionId', required: true, type: Number })
+    // @ApiBearerAuth('JWT')
+    // @UseGuards(AuthGuard('jwt'))
+    // @Get('/:questionId/choices')
+    // async fetchChoices(@CurrentUser() user: Account, @Query('questionId') questionId: number): Promise<ChoiceResponse[]> {
+    //     return await this.questionService.fetchChoices(user.id, questionId);
+    // }
 
     @ApiOperation({ summary: 'create choice' })
     @ApiResponse({ status: 201 })
@@ -77,7 +77,6 @@ export class QuestionController {
         @Body() choiceInCreate: ChoiceInCreate,
     ) {
         const choice = await this.questionService.createChoice(user, questionId, choiceInCreate.value);
-        await this.questionService.updateHistory(user, choice.question);
         return new ChoiceDto(choice);
     }
 

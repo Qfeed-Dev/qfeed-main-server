@@ -1,6 +1,6 @@
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { Choice, Question, QuestionHistory } from "./question.entity";
+import { Choice, Question, ViewHistory } from "./question.entity";
 import { Repository } from "typeorm";
 import { ChoiceResponse, QuestionInCreate } from "./question.dto";
 import { Account } from "src/account/account.entity";
@@ -22,7 +22,7 @@ export class QuestionRepository extends Repository<Question> {
         }
     }
 
-    async fetchQuestions(user: Account, offset: number, limit: number): Promise<Question[]> {
+    async fetchQuestions(offset: number, limit: number): Promise<Question[]> {
 
         const query = this.createQueryBuilder('question')
             .leftJoinAndSelect(
@@ -30,14 +30,25 @@ export class QuestionRepository extends Repository<Question> {
                 'owner'
             )
             .leftJoinAndSelect(
-                'question.histories',
-                'history',
-                'history.user.id = :userId',
-                { userId: user.id }
+                'question.viewHistories',
+                'viewHistories',
+            )
+            .leftJoinAndSelect(
+                'viewHistories.user',
+                'viewUer',
+            )
+            .leftJoinAndSelect(
+                'question.choices',
+                'choices',
+            )
+            .leftJoinAndSelect(
+                'choices.user',
+                'choiceUser',
             )
             .skip(offset)
             .take(limit)
             .orderBy('question.createdAt', 'DESC')
+
         const results = await query.getMany();
         return results
     }
@@ -45,16 +56,24 @@ export class QuestionRepository extends Repository<Question> {
     async getQuestionById(id: number): Promise<Question> {
         const query = this.createQueryBuilder('question')
             .leftJoinAndSelect(
-                'question.histories',
-                'histories',
-            )
-            .leftJoinAndSelect(
-                'histories.user',
-                'user',
-            )
-            .leftJoinAndSelect(
                 'question.owner',
-                'owner',
+                'owner'
+            )
+            .leftJoinAndSelect(
+                'question.viewHistories',
+                'viewHistories',
+            )
+            .leftJoinAndSelect(
+                'viewHistories.user',
+                'viewUer',
+            )
+            .leftJoinAndSelect(
+                'question.choices',
+                'choices',
+            )
+            .leftJoinAndSelect(
+                'choices.user',
+                'choiceUser',
             )
             .where('question.id = :id', { id })
         const question = await query.getOne();
@@ -115,36 +134,20 @@ export class ChoiceRepository extends Repository<Choice> {
 }
 
 
-@CustomRepository(QuestionHistory)
-export class QuestionHistoryRepository extends Repository<QuestionHistory> {
+@CustomRepository(ViewHistory)
+export class ViewHistoryRepository extends Repository<ViewHistory> {
 
-    async getOrCreateHistory(user: Account, question: Question): Promise<QuestionHistory> {
-        const history = await this.findOne({
+    async getOrCreateViewHistory(user: Account, question: Question): Promise<ViewHistory> {
+        const viewHistory = await this.findOne({
             where: {
                 user: { id: user.id },
                 question: { id: question.id },
             }
         })
-        if(history) {
-            return history;
+        if(viewHistory) {
+            return viewHistory;
         } else {
             this.create({ user, question });
-            return await this.save({ user, question });
-        }
-    }
-
-    async updateHistory(user: Account, question: Question): Promise<QuestionHistory> {
-        const history = await this.findOne({
-            where: {
-                user: { id: user.id },
-                question: { id: question.id },
-            }
-        })
-        if(history) {
-            history.isChoiced = true;
-            return await this.save(history);
-        } else {
-            this.create({ user, question, isChoiced: true });
             return await this.save({ user, question });
         }
     }
