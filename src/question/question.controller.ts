@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
-import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, ChoiceResponse } from './question.dto';
+import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto } from './question.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
@@ -27,7 +27,7 @@ export class QuestionController {
 
 
     @ApiOperation({ summary: 'fetch questions' })
-    @ApiResponse({ status: 200,  type: QuestionsResponse, isArray: true })
+    @ApiResponse({ status: 200,  type: QuestionsResponse })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiBearerAuth('JWT')
@@ -37,7 +37,7 @@ export class QuestionController {
         @CurrentUser() user: Account,
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
-    ) {
+    ): Promise<QuestionsResponse> {
         return await this.questionService.fetchQuestions(user, offset, limit);
     }
     
@@ -49,22 +49,11 @@ export class QuestionController {
     async getQuestionById(
         @CurrentUser() user: Account,
         @Query('id') id: number,
-    ) {
+    ): Promise<QuestionDto> {
         const question = await this.questionService.getQuestionById(id);
         await this.questionService.getOrCreateViewHistory(user, question);
         return new QuestionDto(question);
     }
-
-
-    // @ApiOperation({ summary: 'fetch choice' })
-    // @ApiResponse({ status: 200, type: [ChoiceResponse] })
-    // @ApiQuery({ name: 'questionId', required: true, type: Number })
-    // @ApiBearerAuth('JWT')
-    // @UseGuards(AuthGuard('jwt'))
-    // @Get('/:questionId/choices')
-    // async fetchChoices(@CurrentUser() user: Account, @Query('questionId') questionId: number): Promise<ChoiceResponse[]> {
-    //     return await this.questionService.fetchChoices(user.id, questionId);
-    // }
 
     @ApiOperation({ summary: 'create choice' })
     @ApiResponse({ status: 201 })
@@ -80,16 +69,16 @@ export class QuestionController {
         return new ChoiceDto(choice);
     }
 
-    @ApiOperation({ summary: 'get choice by id' })
-    @ApiResponse({ status: 200, type: ChoiceDto })
-    @Get('/:questionId/choices/:choiceId')
-    async getChoiceById(
-        @Query('questionId') questionId: number,
-        @Query('choiceId') choiceId: number,
-    ) {
-        const choice = await this.questionService.getChoiceById(questionId, choiceId);
-        return new ChoiceDto(choice);
-    }
+    // @ApiOperation({ summary: 'get choice by id' })
+    // @ApiResponse({ status: 200, type: ChoiceDto })
+    // @Get('/:questionId/choices/:choiceId')
+    // async getChoiceById(
+    //     @Query('questionId') questionId: number,
+    //     @Query('choiceId') choiceId: number,
+    // ) {
+    //     const choice = await this.questionService.getChoiceById(questionId, choiceId);
+    //     return new ChoiceDto(choice);
+    // }
 
 
 }

@@ -30,6 +30,71 @@ export class QuestionInCreate {
 }
 
 
+export class ChoiceInCreate {
+
+    @ApiProperty({example: '투표 선택지1'})
+    @IsNotEmpty()
+    value: string;
+
+}
+
+
+export class ViewHistoryDto {
+        
+    constructor(viewHistory: ViewHistory) {
+        this.id = viewHistory.id;
+        this.createdAt = viewHistory.createdAt;
+        this.updatedAt = viewHistory.updatedAt;
+
+        if (viewHistory.user) {
+            this.user = new UserDto(viewHistory.user);
+        }
+    }
+
+    @ApiProperty({ type: Number })
+    id: number;
+
+    @ApiProperty({ type: UserDto })
+    user: UserDto;
+
+    @ApiProperty({ type: Date })
+    createdAt: Date;
+
+    @ApiProperty({ type: Date })
+    updatedAt: Date;
+}
+
+
+export class ChoiceDto {
+        
+    constructor(choice: Choice) {
+        this.id = choice.id;
+        this.value = choice.value;
+        this.createdAt = choice.createdAt;
+        this.updatedAt = choice.updatedAt;
+        if (choice.user){
+            this.user = new UserDto(choice.user);
+        }
+    }
+
+    @ApiProperty({ type: Number })
+    id: number;
+
+    @ApiProperty({ type: UserDto })
+    user: UserDto;
+
+    @ApiProperty({ type: String })
+    value: string;
+
+    @ApiProperty({ type: Date })
+    createdAt: Date;
+
+    @ApiProperty({ type: Date })
+    updatedAt: Date;
+
+}
+
+
 export class QuestionDto {
     
     constructor(question: Question) {
@@ -51,37 +116,37 @@ export class QuestionDto {
         }
     }
 
-    @ApiProperty({example: 1})
+    @ApiProperty({type: Number})
     id: number;
     
-    @ApiProperty({example: {"id": 1, "nickname": "q_feed", "profileImage": "https://~"} })
+    @ApiProperty({type: UserDto})
     owner: UserDto;
 
-    @ApiProperty({example: '질문 제목'})
+    @ApiProperty({type: String})
     title: string;
 
-    @ApiProperty({example: ['투표 선택지1', '투표 선택지2']})
+    @ApiProperty({type: [String]})
     choiceList: string[];
 
-    @ApiProperty({example: 'https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/github.png'})
+    @ApiProperty({ type: String })
     backgroundImage: URL;
 
-    @ApiProperty({example: false, default: false})
-    isOfficial: boolean;
+    @ApiProperty({ type: Boolean })
+    isOfficial: boolean
 
-    @ApiProperty({example: false, default: false})
+    @ApiProperty({ type: Boolean })
     isBlind: boolean;
 
-    @ApiProperty({example: [], default: []})
+    @ApiProperty({ type: [ViewHistoryDto] })
     viewHistories: ViewHistoryDto[];
 
-    @ApiProperty({example: [], default: []})
+    @ApiProperty({ type: [ChoiceDto] })
     choices: ChoiceDto[];
 
-    @ApiProperty({example: new Date()})
+    @ApiProperty({ type: Date })
     createdAt: Date;
 
-    @ApiProperty({example: new Date()})
+    @ApiProperty({ type: Date })
     updatedAt: Date;
 
 }
@@ -92,6 +157,7 @@ export class QuestionFetchDto {
         this.id = question.id;
         this.owner = new UserDto(question.owner);
         this.title = question.title;
+        this.backgroundImage = question.backgroundImage;
         this.choiceCount = question.choices.length;
         this.viewCount = question.viewHistories.length;
         this.createdAt = question.createdAt;
@@ -99,28 +165,31 @@ export class QuestionFetchDto {
         this.isChoiced = question.choices.some((choice: Choice) => choice.user.id === userId);
     }
 
-    @ApiProperty({example: 1})
+    @ApiProperty({ type: Number })
     id: number;
 
-    @ApiProperty({example: {"id": 1, "nickname": "q_feed", "profileImage": "https://~"} })
+    @ApiProperty({ type: UserDto })
     owner: UserDto;
 
-    @ApiProperty({example: '질문 제목'})
+    @ApiProperty({ type: String })
     title: string;
 
-    @ApiProperty({example: 1})
+    @ApiProperty({ type: String })
+    backgroundImage: URL;
+
+    @ApiProperty({ type: Number })
     choiceCount: number;
 
-    @ApiProperty({example: 1})
+    @ApiProperty({ type: Number })
     viewCount: number;
 
-    @ApiProperty({example: "fasle", default: false})
+    @ApiProperty({ type: Boolean })
     isViewed: boolean;
 
-    @ApiProperty({example: "fasle", default: false})
+    @ApiProperty({ type: Boolean })
     isChoiced: boolean;
 
-    @ApiProperty({example: new Date()})
+    @ApiProperty({ type: Date })
     createdAt: Date;
 
 }
@@ -134,104 +203,11 @@ export class QuestionsResponse {
         this.data = data;
     }
 
-    @ApiProperty({example: 1})
+    @ApiProperty({type: Number})
     count: number;
     
-    @ApiProperty({example: [QuestionFetchDto]})
+    @ApiProperty({type: [QuestionFetchDto]})
     data: QuestionFetchDto[];
 
 }
 
-export class QuestionDetailResponse {
-    
-    constructor( question: QuestionDto, choiceCount: { [key: string]: number; } ) {
-        this.question = question;
-        this.choiceCount = choiceCount;
-    }
-
-    question: QuestionDto;
-    choiceCount : { [key: string]: number; };
-    
-}
-
-
-export class ChoiceInCreate {
-
-    @ApiProperty({example: '투표 선택지1'})
-    @IsNotEmpty()
-    value: string;
-
-}
-
-export class ChoiceDto {
-        
-        constructor(choice: Choice) {
-            this.id = choice.id;
-            this.value = choice.value;
-            this.createdAt = choice.createdAt;
-            this.updatedAt = choice.updatedAt;
-            if (choice.user){
-                this.user = new UserDto(choice.user);
-            }
-        }
-    
-        @ApiProperty({example: 1})
-        id: number;
-    
-        @ApiProperty({example: {"id": 1, "nickname": "q_feed", "profileImage": "https://~"}, default: null })
-        user: UserDto;
-    
-        @ApiProperty({example: '투표 선택지1'})
-        value: string;
-    
-        @ApiProperty({example: new Date()})
-        createdAt: Date;
-    
-        @ApiProperty({example: new Date()})
-        updatedAt: Date;
-    
-}
-
-export class ChoiceResponse {
-        
-    constructor( value: string, count: number, userChoice: boolean ) {
-        this.value = value;
-        this.count = count;
-        this.userChoice = userChoice;
-    }
-
-    @ApiProperty({example: '투표 선택지1'})
-    value: string;
-
-    @ApiProperty({example: 1})
-    count: number;
-
-    @ApiProperty({example: true})
-    userChoice: boolean;
-    
-}
-
-export class ViewHistoryDto {
-        
-        constructor(viewHistory: ViewHistory) {
-            this.id = viewHistory.id;
-            this.createdAt = viewHistory.createdAt;
-            this.updatedAt = viewHistory.updatedAt;
-
-            if (viewHistory.user) {
-                this.user = new UserDto(viewHistory.user);
-            }
-        }
-    
-        @ApiProperty({example: 1})
-        id: number;
-    
-        @ApiProperty({example: {"id": 1, "nickname": "q_feed", "profileImage": "https://~"}, default: null })
-        user: UserDto;
-    
-        @ApiProperty({example: new Date()})
-        createdAt: Date;
-    
-        @ApiProperty({example: new Date()})
-        updatedAt: Date;
-}

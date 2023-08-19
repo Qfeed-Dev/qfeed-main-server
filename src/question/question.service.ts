@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChoiceRepository, ViewHistoryRepository, QuestionRepository } from './question.repository';
 import { Account } from 'src/account/account.entity';
 import { Choice, Question, ViewHistory } from './question.entity';
-import { ChoiceResponse, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
+import { QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
 
 
 @Injectable()
@@ -27,7 +27,7 @@ export class QuestionService {
 
     async fetchQuestions(user: Account, offset: number, limit: number): Promise<QuestionsResponse> {
         const questions = await this.questionRepository.fetchQuestions(offset, limit);
-        const count = await this.questionRepository.count();
+        const count = await this.questionRepository.count({ take: limit, skip: offset});
         
         return new QuestionsResponse(
             count,
@@ -42,13 +42,16 @@ export class QuestionService {
 
     async createChoice(user: Account, questionId: number, value: string): Promise<Choice> {
         const question = await this.questionRepository.getQuestionById(questionId);
+        if (question.owner.id === user.id) {
+            throw new BadRequestException(`Can't choice your question`)
+        }
+        if (question.choiceList && !(value in question.choiceList)) {
+            throw new BadRequestException(`choice value is not in ${question.choiceList}`)
+        }
         const choice = this.choiceRepository.createChoice(user, question, value);
         return choice;
     }
 
-    // async fetchChoices(userId: number, questionId: number): Promise<ChoiceResponse[]> {
-    //     return await this.choiceRepository.fetchChoices(userId, questionId);
-    // }
 
     async getChoiceById(questionId: number, id: number): Promise<Choice> {
         return await this.choiceRepository.getChoiceById(questionId, id);
@@ -58,6 +61,5 @@ export class QuestionService {
         const viewHistory = await this.questionHistoryRepository.getOrCreateViewHistory(user, question);
         return viewHistory;
     }
-
 
 }
