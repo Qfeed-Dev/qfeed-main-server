@@ -32,7 +32,7 @@ export class Question extends TimeEntity {
     @Column()
     title: string;
 
-    @Column("simple-array")
+    @Column({type: 'varchar', array: true, nullable: true})
     choiceList: string[];
 
     @Column({type: 'varchar', default: 'https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/background.jpg'})
