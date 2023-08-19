@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf } from 'class-validator';
-import { Choice, Question } from './question.entity';
+import { Choice, Question, QuestionHistory } from './question.entity';
 
 
 export class QuestionInCreate {
@@ -39,6 +39,7 @@ export class QuestionDto {
         this.backgroundImage = question.backgroundImage;
         this.isOfficial = question.isOfficial;
         this.isBlind = question.isBlind;
+        this.histories = question.histories.map((history: QuestionHistory) => new QuestionHistoryDto(history));
         this.createdAt = question.createdAt;
         this.updatedAt = question.updatedAt;
     }
@@ -63,6 +64,9 @@ export class QuestionDto {
 
     @ApiProperty({example: false, default: false})
     isBlind: boolean;
+
+    @ApiProperty({example: []})
+    histories: QuestionHistoryDto[];
 
     @ApiProperty({example: new Date()})
     createdAt: Date;
@@ -157,4 +161,34 @@ export class ChoiceResponse {
     userChoice: boolean;
     
 
+}
+
+export class QuestionHistoryDto {
+        
+        constructor(history: QuestionHistory) {
+            this.id = history.id;
+            this.userId = history.user.id;
+            this.isViewed = history.isViewed;
+            this.isChoiced = history.isChoiced;
+            this.createdAt = history.createdAt;
+            this.updatedAt = history.updatedAt;
+        }
+    
+        @ApiProperty({example: 1})
+        id: number;
+    
+        @ApiProperty({example: 1})
+        userId: number;
+    
+        @ApiProperty({example: true})
+        isViewed: boolean;
+
+        @ApiProperty({example: true})
+        isChoiced: boolean;
+    
+        @ApiProperty({example: new Date()})
+        createdAt: Date;
+    
+        @ApiProperty({example: new Date()})
+        updatedAt: Date;
 }

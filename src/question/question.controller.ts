@@ -30,21 +30,28 @@ export class QuestionController {
     @ApiResponse({ status: 200,  type: QuestionsResponse, isArray: true })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
     @Get('/')
     async fetchQuestions(
+        @CurrentUser() user: Account,
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
     ) {
-        return await this.questionService.fetchQuestions(offset, limit);
+        return await this.questionService.fetchQuestions(user, offset, limit);
     }
     
     @ApiOperation({ summary: 'get question by id' })
     @ApiResponse({ status: 200,  type: QuestionDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
     @Get('/:id')
     async getQuestionById(
+        @CurrentUser() user: Account,
         @Query('id') id: number,
     ) {
         const question = await this.questionService.getQuestionById(id);
+        await this.questionService.getOrCreateHistory(user, question);
         return new QuestionDto(question);
     }
 

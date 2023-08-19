@@ -1,6 +1,6 @@
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
-import { InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { Choice, Question } from "./question.entity";
+import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { Choice, Question, QuestionHistory } from "./question.entity";
 import { Repository } from "typeorm";
 import { ChoiceResponse, QuestionInCreate } from "./question.dto";
 import { Account } from "src/account/account.entity";
@@ -22,21 +22,43 @@ export class QuestionRepository extends Repository<Question> {
         }
     }
 
-    async fetchQuestions(offset: number, limit: number): Promise<Question[]> {
-        const questions = await this.find({
-            relations: ['owner'],
-            skip: offset,
-            take: limit,
-            order: { createdAt: "DESC" }
-        });
-        return questions;
+    async fetchQuestions(user: Account, offset: number, limit: number): Promise<Question[]> {
+
+        const query = this.createQueryBuilder('question')
+            .leftJoinAndSelect(
+                'question.owner',
+                'owner'
+            )
+            .leftJoinAndSelect(
+                'question.histories',
+                'history',
+                'history.user.id = :userId',
+                { userId: user.id }
+            )
+            .skip(offset)
+            .take(limit)
+            .orderBy('question.createdAt', 'DESC')
+        const results = await query.getMany();
+        return results
     }
 
     async getQuestionById(id: number): Promise<Question> {
-        const question = await this.findOne({
-            where: {"id": id},
-            relations: ['owner']
-        })
+        const query = this.createQueryBuilder('question')
+            .leftJoinAndSelect(
+                'question.histories',
+                'histories',
+            )
+            .leftJoinAndSelect(
+                'histories.user',
+                'user',
+            )
+            .leftJoinAndSelect(
+                'question.owner',
+                'owner',
+            )
+            .where('question.id = :id', { id })
+        const question = await query.getOne();
+        
         if(question) {
             return question;
         } else {
@@ -56,6 +78,9 @@ export class ChoiceRepository extends Repository<Choice> {
             await this.save(choice);
             return choice;
         } catch (error) {
+            if (error.code === '23505') {
+                throw new ConflictException('already create choice in question');
+            }
             throw new InternalServerErrorException('create choice failed');
         }
     }
@@ -87,4 +112,25 @@ export class ChoiceRepository extends Repository<Choice> {
             throw new NotFoundException(`Can't find choice with id: ${id}`);
         }
     }
+}
+
+
+@CustomRepository(QuestionHistory)
+export class QuestionHistoryRepository extends Repository<QuestionHistory> {
+
+    async getOrCreateHistory(user: Account, question: Question): Promise<QuestionHistory> {
+        const history = await this.findOne({
+            where: {
+                user: { id: user.id },
+                question: { id: question.id },
+            }
+        })
+        if(history) {
+            return history;
+        } else {
+            this.create({ user, question });
+            return await this.save({ user, question });
+        }
+    }
+
 }

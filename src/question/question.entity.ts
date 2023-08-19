@@ -3,6 +3,7 @@ import {
     BaseEntity, 
     Column, 
     Entity, 
+    Unique,
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
@@ -46,9 +47,13 @@ export class Question extends TimeEntity {
     @OneToMany(() => Choice, (choice) => choice.question)
     choices: Choice[]
 
+    @OneToMany(() => QuestionHistory, (history) => history.question)
+    histories: QuestionHistory[]
+
 }
 
 @Entity()
+@Unique(['question', 'user']) 
 export class Choice extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
@@ -61,5 +66,26 @@ export class Choice extends TimeEntity {
 
     @Column()
     value: string;
+
+}
+
+
+@Entity()
+@Unique(['question', 'user']) 
+export class QuestionHistory extends TimeEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => Question, (question) => question.histories)
+    question: Question
+
+    @ManyToOne(() => Account, (user) => user.id)
+    user: Account
+
+    @Column({ default: true })
+    isViewed: boolean;
+
+    @Column({ default: false })
+    isChoiced: boolean;
 
 }
