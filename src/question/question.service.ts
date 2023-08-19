@@ -42,6 +42,7 @@ export class QuestionService {
 
     async createChoice(user: Account, questionId: number, value: string): Promise<Choice> {
         const question = await this.questionRepository.getQuestionById(questionId);
+        
         const choice = this.choiceRepository.createChoice(user, question, value);
         return choice;
     }
