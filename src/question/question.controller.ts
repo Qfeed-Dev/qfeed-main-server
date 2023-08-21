@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
-import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto } from './question.dto';
+import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto } from './question.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
@@ -11,6 +11,45 @@ import { Account } from 'src/account/account.entity';
 export class QuestionController {
     
     constructor(private readonly questionService: QuestionService) {}
+
+    @ApiOperation({ summary: 'create UserQset' })
+    @ApiResponse({ status: 201, type: UserQsetDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Post('/q-set')
+    async createUserQset(
+        @CurrentUser() user: Account,
+    ) {
+        const userQset = await this.questionService.createUserQset(user);
+        return new UserQsetDto(userQset);
+    }
+
+    @ApiOperation({ summary: 'get UserQset' })
+    @ApiResponse({ status: 200, type: UserQsetDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Get('/q-set')
+    async getUserQset(
+        @CurrentUser() user: Account,
+    ) {
+        const userQset = await this.questionService.getCurrentUserQset(user);
+        return new UserQsetDto(userQset);
+    }
+
+    @ApiOperation({ summary: 'Pass UserQ' })
+    @ApiResponse({ status: 200, type: UserQsetDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('/q-set')
+    async passUseQ(
+        @CurrentUser() user: Account,
+    ) {
+        const userQset = await this.questionService.passUseQ(user);
+        return new UserQsetDto(userQset);
+    }
+
+
+
 
     @ApiOperation({ summary: 'create question' })
     @ApiResponse({ status: 201,  type: QuestionDto })
@@ -24,7 +63,6 @@ export class QuestionController {
         const question = await this.questionService.createQuestion(account, QuestionInCreate);
         return new QuestionDto(question);
     }
-
 
     @ApiOperation({ summary: 'fetch questions' })
     @ApiResponse({ status: 200,  type: QuestionsResponse })
@@ -56,7 +94,7 @@ export class QuestionController {
     }
 
     @ApiOperation({ summary: 'create choice' })
-    @ApiResponse({ status: 201 })
+    @ApiResponse({ status: 201, type: ChoiceDto })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
     @Post('/:questionId/choices')
