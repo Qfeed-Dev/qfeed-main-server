@@ -1,7 +1,7 @@
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { Choice, Question, ViewHistory } from "./question.entity";
-import { Repository } from "typeorm";
+import { Choice, Qset, UserQset, Question, ViewHistory } from "./question.entity";
+import { In, Not, Repository } from "typeorm";
 import { QuestionInCreate } from "./question.dto";
 import { Account } from "src/account/account.entity";
 
@@ -133,8 +133,75 @@ export class ViewHistoryRepository extends Repository<ViewHistory> {
         if(viewHistory) {
             return viewHistory;
         } else {
-            this.create({ user, question });
-            return await this.save({ user, question });
+            const viewHistory =  this.create({ user, question });
+            return await this.save(viewHistory);
+
+        }
+    }
+
+}
+
+
+@CustomRepository(Qset)
+export class QsetRepository extends Repository<Qset> {
+
+    async getNewQset(excludedQsetIds: number[]): Promise<Qset> {
+        const Qset = await this.findOne({
+            where: {
+                id: Not(In(excludedQsetIds)),
+            },
+            order: {
+                id: 'ASC',
+            },
+        })
+        if (Qset) {
+            return Qset;
+        }
+        this.create({ QList: [] });
+        throw new NotFoundException(`Can't find New Qset`);
+    }
+}
+
+
+
+@CustomRepository(UserQset)
+export class UserQsetRepository extends Repository<UserQset> {
+
+    async fetchBy(user: Account): Promise<UserQset[]> {
+        const userQsets = await this.find({
+            where: {
+                user: { id: user.id },
+                isDone: true,
+            },
+        })
+        return userQsets
+    }
+    
+    async getBy(user: Account): Promise<UserQset> {
+        const UserQset = await this.findOne({
+            relations: ['user', 'Qset'],
+            where: {
+                user: { id: user.id },
+                isDone: false,
+            },
+        })
+        if (UserQset) {
+            return UserQset;
+        }
+        throw new NotFoundException(`Can't find running Qset`);
+    }
+    
+    async createBy(user: Account, Qset: Qset): Promise<UserQset> {
+        try {
+            const useQset = this.create({
+                user, Qset
+            });
+            return await this.save(useQset);
+        } catch (error) {
+            if (error.code === '23505') {
+                throw new ConflictException('already create useQset in Qset');
+            }
+            throw new InternalServerErrorException('create useQset failed');
         }
     }
 

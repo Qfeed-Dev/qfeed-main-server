@@ -83,3 +83,39 @@ export class ViewHistory extends TimeEntity {
     user: Account
 
 }
+
+@Entity()
+export class Qset extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({type: 'varchar', array: true })
+    QList: string[];
+
+}
+
+@Entity()
+@Unique(['Qset', 'user'])
+export class UserQset extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => Qset, (Qset) => Qset.id)
+    Qset: Qset
+
+    @ManyToOne(() => Account, (user) => user.id)
+    user: Account
+
+    @Column()
+    cursor: number = 0;
+
+    @Column()
+    isDone: boolean = false;
+
+    @Column()
+    startAt: Date = new Date();
+
+    @Column({ nullable: true })
+    endAt: Date;
+}
+

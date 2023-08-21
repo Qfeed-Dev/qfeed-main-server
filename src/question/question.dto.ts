@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf } from 'class-validator';
-import { Choice, Question, ViewHistory } from './question.entity';
+import { Choice, Question, UserQset, ViewHistory } from './question.entity';
 import { UserDto } from 'src/account/account.dto';
 
 
@@ -195,7 +195,6 @@ export class QuestionFetchDto {
 }
 
 
-
 export class QuestionsResponse {
     
     constructor( count: number, data: QuestionFetchDto[] ) {
@@ -211,3 +210,38 @@ export class QuestionsResponse {
 
 }
 
+
+export class UserQsetDto {
+
+    constructor(userQset: UserQset) {
+        this.id = userQset.id;
+        this.user = new UserDto(userQset.user);
+        this.currentQ = userQset.Qset.QList[userQset.cursor];
+        this.cursor = userQset.cursor;
+        this.QsetLength = userQset.Qset.QList.length;
+        this.startAt = userQset.startAt;
+        this.endAt = userQset.endAt;
+    }
+
+    @ApiProperty({ type: Number })
+    id: number;
+
+    @ApiProperty({ type: UserDto })
+    user: UserDto;
+
+    @ApiProperty({ type: String })
+    currentQ: string;
+
+    @ApiProperty({ type: Number })
+    cursor: number;
+
+    @ApiProperty({ type: Number })
+    QsetLength: number;
+
+    @ApiProperty({ type: Date })
+    startAt: Date;
+
+    @ApiProperty({ type: Date })
+    endAt: Date;
+
+}
