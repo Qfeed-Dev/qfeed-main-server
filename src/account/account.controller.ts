@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AccountDto, AccountInSign, AccountInUpdate, AccountsResponse, TokenDto, checkNickname } from './account.dto';
 import { AccountService } from './account.service';
@@ -94,7 +94,7 @@ export class AccountController {
     @ApiOperation({ summary: 'get user' })
     @ApiResponse({ status: 200, description: 'Account info about target user', type: AccountDto })
     @Get('/:id')
-    async getUser(@Query('id') id: number): Promise<AccountDto>  {
+    async getUser(@Param('id') id: number): Promise<AccountDto>  {
         const account = await this.accountService.getAccountById(id);
         return new AccountDto(account);
     }

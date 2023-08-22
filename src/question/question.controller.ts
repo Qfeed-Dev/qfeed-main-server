@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Query, UseGuards, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
 import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto } from './question.dto';
@@ -48,9 +48,6 @@ export class QuestionController {
         return new UserQsetDto(userQset);
     }
 
-
-
-
     @ApiOperation({ summary: 'create question' })
     @ApiResponse({ status: 201,  type: QuestionDto })
     @ApiBearerAuth('JWT')
@@ -86,7 +83,7 @@ export class QuestionController {
     @Get('/:id')
     async getQuestionById(
         @CurrentUser() user: Account,
-        @Query('id') id: number,
+        @Param('id') id: number,
     ): Promise<QuestionDto> {
         const question = await this.questionService.getQuestionById(id);
         await this.questionService.getOrCreateViewHistory(user, question);
@@ -100,23 +97,14 @@ export class QuestionController {
     @Post('/:questionId/choices')
     async createChoice(
         @CurrentUser() user: Account,
-        @Query('questionId') questionId: number,
+        @Param('questionId') questionId: number,
         @Body() choiceInCreate: ChoiceInCreate,
     ) {
         const choice = await this.questionService.createChoice(user, questionId, choiceInCreate.value);
         return new ChoiceDto(choice);
     }
 
-    // @ApiOperation({ summary: 'get choice by id' })
-    // @ApiResponse({ status: 200, type: ChoiceDto })
-    // @Get('/:questionId/choices/:choiceId')
-    // async getChoiceById(
-    //     @Query('questionId') questionId: number,
-    //     @Query('choiceId') choiceId: number,
-    // ) {
-    //     const choice = await this.questionService.getChoiceById(questionId, choiceId);
-    //     return new ChoiceDto(choice);
-    // }
+
 
 
 }
