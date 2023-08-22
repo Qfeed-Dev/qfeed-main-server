@@ -217,7 +217,7 @@ export class UserQsetDto {
         this.id = userQset.id;
         this.user = new UserDto(userQset.user);
         this.currentQ = userQset.Qset.QList[userQset.cursor];
-        this.cursor = userQset.cursor;
+        this.cursor = userQset.cursor + 1;
         this.QsetLength = userQset.Qset.QList.length;
         this.startAt = userQset.startAt;
         this.endAt = userQset.endAt;

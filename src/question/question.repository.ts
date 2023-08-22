@@ -169,6 +169,7 @@ export class UserQsetRepository extends Repository<UserQset> {
 
     async fetchBy(user: Account): Promise<UserQset[]> {
         const userQsets = await this.find({
+            relations: ['Qset'],
             where: {
                 user: { id: user.id },
                 isDone: true,
