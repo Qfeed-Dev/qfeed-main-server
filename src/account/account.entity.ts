@@ -1,4 +1,4 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn, Unique, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne } from "typeorm";
 import { SchoolType, Gender } from "./account.enum";
 import { Question } from "src/question/question.entity";
 
@@ -61,5 +61,26 @@ export class Account extends TimeEntity {
 
     @OneToMany(() => Question, (question) => question.owner)
     questions: Question[]
+
+    @OneToMany(() => Follow, (follow) => follow.targetUser)
+    following: Follow[]
+
+    @OneToMany(() => Follow, (follow) => follow.user)
+    followers: Follow[]
+
+}
+
+
+@Entity()
+@Unique(['user', 'targetUser'])
+export class Follow extends TimeEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => Account, (user) => user.following)
+    user: Account;
+
+    @ManyToOne(() => Account, (user) => user.followers)
+    targetUser: Account;
 
 }
