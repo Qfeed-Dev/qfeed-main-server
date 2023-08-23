@@ -40,7 +40,7 @@ export class QuestionController {
     @ApiResponse({ status: 200, type: UserQsetDto })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
-    @Patch('/q-set')
+    @Patch('/q-set/pass')
     async passUseQ(
         @CurrentUser() user: Account,
     ) {

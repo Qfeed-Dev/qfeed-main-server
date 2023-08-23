@@ -219,6 +219,7 @@ export class UserQsetDto {
         this.currentQ = userQset.Qset.QList[userQset.cursor];
         this.cursor = userQset.cursor + 1;
         this.QsetLength = userQset.Qset.QList.length;
+        this.isDone = userQset.isDone;
         this.startAt = userQset.startAt;
         this.endAt = userQset.endAt;
     }
@@ -237,6 +238,9 @@ export class UserQsetDto {
 
     @ApiProperty({ type: Number })
     QsetLength: number;
+
+    @ApiProperty({ type: Boolean })
+    isDone: boolean;
 
     @ApiProperty({ type: Date })
     startAt: Date;

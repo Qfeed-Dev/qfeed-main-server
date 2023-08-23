@@ -157,7 +157,6 @@ export class QsetRepository extends Repository<Qset> {
         if (Qset) {
             return Qset;
         }
-        this.create({ QList: [] });
         throw new NotFoundException(`Can't find New Qset`);
     }
 }
