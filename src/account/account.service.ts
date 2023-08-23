@@ -5,11 +5,12 @@ import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { AccountDto, AccountInSign, AccountInUpdate, AccountsResponse, TokenDto, checkNickname } from './account.dto';
-import { AccountRepository } from './account.repository';
+import { AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname } from './account.dto';
+import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
-import { Account } from './account.entity';
+import { Account, Follow } from './account.entity';
+import { Like } from 'typeorm';
 
 
 
@@ -18,6 +19,10 @@ export class AccountService {
     constructor(
         @InjectRepository(AccountRepository)
         private accountRepository: AccountRepository,
+        
+        @InjectRepository(FollowRepository)
+        private followRepository: FollowRepository,
+
         private jwtService: JwtService,
         private readonly httpService: HttpService
     ) {}
@@ -79,12 +84,19 @@ export class AccountService {
         await this.accountRepository.deleteAccountById(id)
     }
 
-    async fetch(offset: number, limit: number): Promise<AccountsResponse> {
-        const accounts = await this.accountRepository.fetchAccounts(offset, limit);
-        const count = await this.accountRepository.count();
+    async fetch(keyword:string, offset: number, limit: number): Promise<UsersResponse> {
+        const accounts = await this.accountRepository.fetchAccounts(keyword, offset, limit);
+        const count = await this.accountRepository.count({
+            where: [
+                { name : Like(`%${keyword}%`) },
+                { nickname: Like(`%${keyword}%`) }
+            ],
+            skip: offset,
+            take: limit,
+        });
         
-        return new AccountsResponse(
-            accounts.map((account: Account) => new AccountDto(account)),
+        return new UsersResponse(
+            accounts.map((account: Account) => new UserDto(account)),
             count
         );
     }
@@ -157,6 +169,40 @@ export class AccountService {
             const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
             return new TokenDto(token, expireTime);
         }
+    }
+
+    async followUser(user: Account, targetUser: Account): Promise<Account> {
+        await this.followRepository.createFollow(user, targetUser);
+        return targetUser;
+    }
+
+    async unfollowUser(user: Account, targetUser: Account): Promise<Account> {
+        await this.followRepository.deleteFollow(user, targetUser);
+        return targetUser;
+    }
+
+    async fetchFollowings(user: Account, offset: number, limit: number): Promise<UsersResponse> {
+        const followings = await this.followRepository.fetchFollowings(user, offset, limit);
+        const count = await this.followRepository.count(
+            { where: {"user": {"id": user.id} } }
+        );
+
+        return new UsersResponse(
+            followings.map((follow: Follow) => new UserDto(follow.targetUser)),
+            count
+        );
+    }
+
+    async fetchFollowers(user: Account, offset: number, limit: number): Promise<UsersResponse> {
+        const followers = await this.followRepository.fetchFollowers(user, offset, limit);
+        const count = await this.followRepository.count(
+            { where: {"targetUser": {"id": user.id} } }
+        );
+                    
+        return new UsersResponse(
+            followers.map((follow: Follow) => new UserDto(follow.user)),
+            count
+        );
     }
 
 }

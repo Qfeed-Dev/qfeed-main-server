@@ -1,7 +1,7 @@
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { Account } from "./account.entity";
+import { Account, Follow } from "./account.entity";
 import { AccountInSign, AccountInUpdate } from "./account.dto";
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
 
@@ -65,8 +65,12 @@ export class AccountRepository extends Repository<Account> {
         return account;
     }
 
-    async fetchAccounts(offset: number, limit: number): Promise<Account[]> {
+    async fetchAccounts(keyword: string, offset: number, limit: number): Promise<Account[]> {
         const accounts = await this.find({
+            where: [
+                { name : Like(`%${keyword}%`) },
+                { nickname: Like(`%${keyword}%`) }
+            ],
             skip: offset,
             take: limit,
           });
@@ -85,4 +89,84 @@ export class AccountRepository extends Repository<Account> {
             throw new NotFoundException(`Can't find account with id ${id}`);
         }
     }
+}
+
+
+@CustomRepository(Follow)
+export class FollowRepository extends Repository<Follow> {
+
+    async createFollow(user: Account, targetUser: Account): Promise<Follow> {
+        if (user.id === targetUser.id) {
+            throw new ConflictException('can not follow myself');
+        }
+        try {
+            const Follow = this.create({
+                user: user, targetUser: targetUser
+            });
+            return await this.save(Follow);
+        } catch (error) {
+            if (error.code === '23505') {
+                return await this.getFollow(user, targetUser)
+            }
+            throw new InternalServerErrorException('create follow failed');
+        }
+    }
+
+    async fetchFollowings(user: Account, offset: number, limit: number): Promise<Follow[]> {
+        const follows = await this.find({
+            relations: ["targetUser"],
+            where: {
+                "user":  { "id": user.id },
+            },
+            skip: offset,
+            take: limit,
+        })
+        return follows;
+    }
+
+    async fetchFollowers(user: Account, offset: number, limit: number): Promise<Follow[]> {
+        const follows = await this.find({
+            relations: ["user"],
+            where: {
+                "targetUser":  { "id": user.id },
+            },
+            skip: offset,
+            take: limit,
+        })
+        return follows;
+    }
+
+    async fetchFollowByTargetUser(targetUser: Account, offset: number, limit: number): Promise<Follow[]> {
+        const follows = await this.find({
+            where: {
+                "targetUser":  { "id": targetUser.id },
+            },
+            skip: offset,
+            take: limit,
+        })
+        return follows;
+    }
+
+    async getFollow(user: Account, targetUser: Account): Promise<Follow> {
+        const follow = await this.findOne({
+            where: {
+                "user":  { "id": user.id },
+                "targetUser":  { "id": targetUser.id },
+            },
+        })
+        if(follow) {
+            return follow;
+        } else {
+            throw new NotFoundException(`Can't find follow with id: ${user.id}`);
+        }
+    }
+
+    async deleteFollow(user: Account, targetUser: Account): Promise<void> {
+        await this.delete({
+            "user": {"id": user.id},
+            "targetUser": {"id": targetUser.id}
+        })
+    }
+
+
 }
