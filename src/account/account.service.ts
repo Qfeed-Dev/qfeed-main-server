@@ -10,6 +10,7 @@ import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
 import { Account, Follow } from './account.entity';
+import { Like } from 'typeorm';
 
 
 
@@ -83,9 +84,16 @@ export class AccountService {
         await this.accountRepository.deleteAccountById(id)
     }
 
-    async fetch(offset: number, limit: number): Promise<UsersResponse> {
-        const accounts = await this.accountRepository.fetchAccounts(offset, limit);
-        const count = await this.accountRepository.count();
+    async fetch(keyword:string, offset: number, limit: number): Promise<UsersResponse> {
+        const accounts = await this.accountRepository.fetchAccounts(keyword, offset, limit);
+        const count = await this.accountRepository.count({
+            where: [
+                { name : Like(`%${keyword}%`) },
+                { nickname: Like(`%${keyword}%`) }
+            ],
+            skip: offset,
+            take: limit,
+        });
         
         return new UsersResponse(
             accounts.map((account: Account) => new UserDto(account)),

@@ -78,13 +78,15 @@ export class AccountController {
     @Get('/fetch')
     @ApiResponse({ status: 200, description: 'fetch users', type: UsersResponse })
     @ApiOperation({ summary: 'fetch users' })
+    @ApiQuery({ name: 'keyword', required: false, type: String })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     async fetchUsers(
+        @Query('keyword') keyword: string = "",
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
     ): Promise<UsersResponse> {
-        return await this.accountService.fetch(offset, limit);
+        return await this.accountService.fetch(keyword, offset, limit);
     }
 
     @Delete('me/hard-delete')

@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
+import { Like, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Account, Follow } from "./account.entity";
@@ -65,8 +65,12 @@ export class AccountRepository extends Repository<Account> {
         return account;
     }
 
-    async fetchAccounts(offset: number, limit: number): Promise<Account[]> {
+    async fetchAccounts(keyword: string, offset: number, limit: number): Promise<Account[]> {
         const accounts = await this.find({
+            where: [
+                { name : Like(`%${keyword}%`) },
+                { nickname: Like(`%${keyword}%`) }
+            ],
             skip: offset,
             take: limit,
           });

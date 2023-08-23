@@ -167,15 +167,19 @@ export class AccountDto {
 export class UserDto {
     constructor(account: Account) {
         this.id = account.id;
+        this.name = account.name;
         this.nickname = account.nickname;
         this.profileImage = account.profileImage;
         this.schoolName = account.schoolName;
         this.grade = account.grade;
-        this.gender = account.gender
+        this.gender = account.gender;
     }
 
     @ApiProperty({example: 1})
     id: number;
+
+    @ApiProperty({example: "김피드"})
+    name: string;
 
     @ApiProperty({example: "김피드"})
     nickname: string;
