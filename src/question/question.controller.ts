@@ -79,6 +79,7 @@ export class QuestionController {
 
     @ApiOperation({ summary: 'fetch user questions' })
     @ApiResponse({ status: 200,  type: QuestionsResponse })
+    @ApiQuery({ name: 'Qtype', required: true, enum: Qtype })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiBearerAuth('JWT')
