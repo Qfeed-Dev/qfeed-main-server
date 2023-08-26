@@ -5,6 +5,7 @@ import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, Choic
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
+import { Qtype } from './question.enum';
 
 @Controller('questions')
 @ApiTags('Question')
@@ -75,17 +76,35 @@ export class QuestionController {
     ): Promise<QuestionsResponse> {
         return await this.questionService.fetchQuestions(user, offset, limit);
     }
+
+    @ApiOperation({ summary: 'fetch user questions' })
+    @ApiResponse({ status: 200,  type: QuestionsResponse })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'offset', required: false, type: Number })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Get('/user/:userId')
+    async fetchUserQuestions(
+        @CurrentUser() currentUser: Account,
+        @Param('userId') userId: number,
+        @Query('Qtype') Qtype: Qtype,
+        @Query('offset') offset: number = 0,
+        @Query('limit') limit: number = 20,
+    ): Promise<QuestionsResponse> {
+        return await this.questionService.fetchUserQuestions(currentUser.id, userId, Qtype,  offset, limit);
+    }
+
     
     @ApiOperation({ summary: 'get question by id' })
     @ApiResponse({ status: 200,  type: QuestionDto })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
-    @Get('/:id')
+    @Get('/:questionId')
     async getQuestionById(
         @CurrentUser() user: Account,
-        @Param('id') id: number,
+        @Param('questionId') questionId: number,
     ): Promise<QuestionDto> {
-        const question = await this.questionService.getQuestionById(id);
+        const question = await this.questionService.getQuestionById(questionId);
         await this.questionService.getOrCreateViewHistory(user, question);
         return new QuestionDto(question);
     }

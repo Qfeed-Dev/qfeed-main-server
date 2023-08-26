@@ -10,6 +10,7 @@ import {
     ManyToOne,
     OneToMany,
  } from "typeorm";
+import { Qtype } from "./question.enum";
 
 
 export class TimeEntity extends BaseEntity {
@@ -38,8 +39,8 @@ export class Question extends TimeEntity {
     @Column({type: 'varchar', default: 'https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/background.jpg'})
     backgroundImage: URL;
 
-    @Column({ default: false })
-    isOfficial: boolean;
+    @Column({ default: Qtype.Personal })
+    Qtype: Qtype;
 
     @Column({ default: false })
     isBlind: boolean;

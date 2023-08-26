@@ -4,6 +4,7 @@ import { ChoiceRepository, ViewHistoryRepository, QuestionRepository, QsetReposi
 import { Account } from 'src/account/account.entity';
 import { Choice, UserQset, Question, ViewHistory } from './question.entity';
 import { QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
+import { Qtype } from './question.enum';
 
 
 @Injectable()
@@ -34,11 +35,25 @@ export class QuestionService {
 
     async fetchQuestions(user: Account, offset: number, limit: number): Promise<QuestionsResponse> {
         const questions = await this.questionRepository.fetchQuestions(offset, limit);
-        const count = await this.questionRepository.count({ take: limit, skip: offset});
+        const count = await this.questionRepository.count();
         
         return new QuestionsResponse(
-            count,
-            questions.map((question: Question) => new QuestionFetchDto(user.id, question))
+            count, questions.map((question: Question) => new QuestionFetchDto(user.id, question))
+        );
+    }
+
+    async fetchUserQuestions(
+        currentUserId:number,
+        targetUserId: number,
+        Qtype: Qtype,
+        offset: number,
+        limit: number
+    ): Promise<QuestionsResponse> {
+        const questions = await this.questionRepository.fetchUserQuestions(targetUserId, Qtype, offset, limit);
+        const count = await this.questionRepository.count({ where: { owner: {"id": targetUserId} }});
+        console.log(questions)
+        return new QuestionsResponse(
+            count, questions.map((question: Question) => new QuestionFetchDto(currentUserId, question))
         );
     }
 
