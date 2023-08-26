@@ -29,6 +29,12 @@ export class AccountController {
         return await this.accountService.login(AccountInSign);
     }
 
+    @ApiOperation({ summary: 'kakao login' })
+    @Get('/kakao/login')
+    async kakaoLogin(@Query('code') code: string, @Query('redirectUrl') redirectUrl: string) {
+        return await this.accountService.kakaoLogin(code, redirectUrl);
+    }
+
     @Get('/check-nickname')
     @ApiResponse({ status: 200, description: 'Check nickname', type: checkNickname })
     @ApiOperation({ summary: 'Check nickname' })
@@ -43,6 +49,16 @@ export class AccountController {
     @ApiOperation({ summary: 'me summary' })
     getAccount(@CurrentUser() account: Account): AccountDto {
         return new AccountDto(account);
+    }
+
+    @Delete('me/hard-delete')
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiResponse({ status: 200, description: 'Hard Delete Account' })
+    @ApiOperation({ summary: 'delete' })
+    async hardDeleteAccount(@CurrentUser() account: Account): Promise<any> {
+        await this.accountService.delete(account.id);
+        return {"message": "success"}
     }
 
     @Get('/me/followings')
@@ -89,15 +105,7 @@ export class AccountController {
         return await this.accountService.fetch(keyword, offset, limit);
     }
 
-    @Delete('me/hard-delete')
-    @ApiBearerAuth('JWT')
-    @UseGuards(AuthGuard('jwt'))
-    @ApiResponse({ status: 200, description: 'Hard Delete Account' })
-    @ApiOperation({ summary: 'delete' })
-    async hardDeleteAccount(@CurrentUser() account: Account): Promise<any> {
-        await this.accountService.delete(account.id);
-        return {"message": "success"}
-    }
+  
 
     @ApiOperation({ summary: 'me update' })
     @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
@@ -109,19 +117,9 @@ export class AccountController {
         return new AccountDto(updatedAccount);
     }
 
-    @ApiOperation({ summary: 'kakao login' })
-    @Get('/kakao/login')
-    async kakaoLogin(@Query('code') code: string, @Query('redirectUrl') redirectUrl: string) {
-        return await this.accountService.kakaoLogin(code, redirectUrl);
-    }
-    
-    // @ApiOperation({ summary: 'kakao callback' })
-    // @Get('/kakao/callback')
-    // async kakaocallback(@Query('code') code: string) {
-    //     return await this.accountService.kakaoLogin(code);
-    // }
 
-    
+
+
     @ApiOperation({ summary: 'get user' })
     @ApiResponse({ status: 200, description: 'Account info about target user', type: AccountDto })
     @Get('/:id')
