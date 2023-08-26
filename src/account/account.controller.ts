@@ -93,6 +93,21 @@ export class AccountController {
         return await this.accountService.fetchFollowers(user, offset, limit);
     }
 
+    @Get('/me/unfollowings')
+    @ApiResponse({ status: 200, description: 'fetch unfollowings', type:  UsersResponse})
+    @ApiOperation({ summary: 'fetch unfollowings' })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiQuery({ name: 'offset', required: false, type: Number })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    async fetchUnfollowings(
+        @CurrentUser() user: Account,
+        @Query('offset') offset: number = 0,
+        @Query('limit') limit: number = 20,
+    ): Promise<UsersResponse> {
+        return await this.accountService.fetchUnfollowings(user, offset, limit);
+    }
+
     @Get('/fetch')
     @ApiResponse({ status: 200, description: 'fetch users', type: UsersResponse })
     @ApiOperation({ summary: 'fetch users' })
@@ -106,6 +121,11 @@ export class AccountController {
     ): Promise<UsersResponse> {
         return await this.accountService.fetch(keyword, offset, limit);
     }
+
+
+
+
+    
 
 
     @ApiOperation({ summary: 'me update' })

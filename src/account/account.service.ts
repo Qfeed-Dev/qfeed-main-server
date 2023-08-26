@@ -10,7 +10,7 @@ import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
 import { Account, Follow } from './account.entity';
-import { Like } from 'typeorm';
+import { In, Like, Not } from 'typeorm';
 
 
 
@@ -179,7 +179,7 @@ export class AccountService {
         return targetUser;
     }
 
-    async fetchFollowings(user: Account, keyword:string, offset: number, limit: number): Promise<UsersResponse> {
+    async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
         const followings = await this.followRepository.fetchFollowings(user, keyword, offset, limit);
         const count = await this.followRepository.count({
             where: [
@@ -206,4 +206,22 @@ export class AccountService {
         );
     }
 
+
+    async fetchUnfollowings(user: Account, offset: number, limit: number): Promise<UsersResponse> {
+        const followings = await this.followRepository.find({
+            relations: ["targetUser"],
+            where: { user: { id: user.id } },
+        });
+        const followingIds = followings.map((follow: Follow) => follow.targetUser.id);
+        const unfollowingUsers = await this.accountRepository.fetchUnfollowings(user, followingIds, offset, limit);
+        const count = await this.accountRepository.count({
+            where: {
+                id: Not(In(followingIds.concat(user.id))),
+            },
+        });
+        return new UsersResponse(
+            unfollowingUsers.map((account: Account) => new UserDto(account)),
+            count
+        );
+    }  
 }

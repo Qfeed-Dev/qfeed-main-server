@@ -1,4 +1,4 @@
-import { Like, Repository } from "typeorm";
+import { In, Like, Not, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Account, Follow } from "./account.entity";
@@ -77,6 +77,18 @@ export class AccountRepository extends Repository<Account> {
         return accounts;
     }
 
+    async fetchUnfollowings(user: Account, followingsIds:number[], offset: number, limit: number): Promise<Account[]> {
+        const accounts = await this.find({
+            where: {
+                id: Not(In(followingsIds.concat(user.id))),
+            },
+            skip: offset,
+            take: limit,
+        });
+        return accounts;
+    }     
+
+
     async updateAccount(id: number, AccountInUpdate: AccountInUpdate): Promise<Account> {
         const account = await this.getAccountById(id);
         Object.assign(account, AccountInUpdate);
@@ -116,8 +128,8 @@ export class FollowRepository extends Repository<Follow> {
         const follows = await this.find({
             relations: ["targetUser"],
             where: [
-                { id: user.id,  targetUser: { name: Like(`%${keyword}%`)} },
-                { id: user.id,  targetUser: { nickname: Like(`%${keyword}%`)} },
+                { user: { id : user.id },  targetUser: { name: Like(`%${keyword}%`)} },
+                { user: { id : user.id },  targetUser: { nickname: Like(`%${keyword}%`)} },
             ],
             skip: offset,
             take: limit,
@@ -129,7 +141,7 @@ export class FollowRepository extends Repository<Follow> {
         const follows = await this.find({
             relations: ["user"],
             where: {
-                "targetUser":  { "id": user.id },
+                targetUser:  { id: user.id },
             },
             skip: offset,
             take: limit,
@@ -140,7 +152,7 @@ export class FollowRepository extends Repository<Follow> {
     async fetchFollowByTargetUser(targetUser: Account, offset: number, limit: number): Promise<Follow[]> {
         const follows = await this.find({
             where: {
-                "targetUser":  { "id": targetUser.id },
+                targetUser:  { id: targetUser.id },
             },
             skip: offset,
             take: limit,
@@ -151,8 +163,8 @@ export class FollowRepository extends Repository<Follow> {
     async getFollow(user: Account, targetUser: Account): Promise<Follow> {
         const follow = await this.findOne({
             where: {
-                "user":  { "id": user.id },
-                "targetUser":  { "id": targetUser.id },
+                user:  { id: user.id },
+                targetUser:  { id: targetUser.id },
             },
         })
         if(follow) {
@@ -164,8 +176,8 @@ export class FollowRepository extends Repository<Follow> {
 
     async deleteFollow(user: Account, targetUser: Account): Promise<void> {
         await this.delete({
-            "user": {"id": user.id},
-            "targetUser": {"id": targetUser.id}
+            user: { id: user.id },
+            targetUser: { id: targetUser.id }
         })
     }
 
