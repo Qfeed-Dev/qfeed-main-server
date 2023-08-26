@@ -4,6 +4,7 @@ import { Choice, Qset, UserQset, Question, ViewHistory } from "./question.entity
 import { In, Not, Repository } from "typeorm";
 import { QuestionInCreate } from "./question.dto";
 import { Account } from "src/account/account.entity";
+import { Qtype } from "./question.enum";
 
 
 @CustomRepository(Question)
@@ -23,67 +24,61 @@ export class QuestionRepository extends Repository<Question> {
     }
 
     async fetchQuestions(offset: number, limit: number): Promise<Question[]> {
-
-        const query = this.createQueryBuilder('question')
-            .leftJoinAndSelect(
-                'question.owner',
-                'owner'
-            )
-            .leftJoinAndSelect(
-                'question.viewHistories',
-                'viewHistories',
-            )
-            .leftJoinAndSelect(
-                'viewHistories.user',
-                'viewUer',
-            )
-            .leftJoinAndSelect(
-                'question.choices',
-                'choices',
-            )
-            .leftJoinAndSelect(
-                'choices.user',
-                'choiceUser',
-            )
-            .skip(offset)
-            .take(limit)
-            .orderBy('question.createdAt', 'DESC')
-
-        const results = await query.getMany();
-        return results
+        const questions = await this.find({
+            relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
+            where: { isBlind: false },
+            skip: offset,
+            take: limit,
+        })
+        return questions
     }
 
+    async fetchUserQuestions(targetUserId: number, Qtype: Qtype, offset: number, limit: number): Promise<Question[]> {
+        const questions = await this.find({
+            relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
+            where: { 
+                owner : { id: targetUserId },
+                Qtype : Qtype,
+                isBlind : false,
+            },
+            skip: offset,
+            take: limit,
+        })
+        return questions
+    }
+
+
     async getQuestionById(id: number): Promise<Question> {
-        const query = this.createQueryBuilder('question')
-            .leftJoinAndSelect(
-                'question.owner',
-                'owner'
-            )
-            .leftJoinAndSelect(
-                'question.viewHistories',
-                'viewHistories',
-            )
-            .leftJoinAndSelect(
-                'viewHistories.user',
-                'viewUer',
-            )
-            .leftJoinAndSelect(
-                'question.choices',
-                'choices',
-            )
-            .leftJoinAndSelect(
-                'choices.user',
-                'choiceUser',
-            )
-            .where('question.id = :id', { id })
-        const question = await query.getOne();
-        
+        const question = await this.findOne({
+            relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
+            where: { id : id }
+        })
         if(question) {
             return question;
         } else {
             throw new NotFoundException(`Can't find question with id: ${id}`);
         }
     }
+
+    async getOrCreateUserQ(targetUser: Account, title: string): Promise<Question> {
+        const question = await this.findOne({
+            where: { 
+                owner : { id: targetUser.id },
+                title: title, 
+                Qtype: Qtype.Official, 
+            }
+        })
+        if(question) {
+            return question;
+        }
+        const newQuestion = this.create({
+            owner: targetUser,
+            title: title,
+            Qtype: Qtype.Official ,
+        });
+        return await this.save(newQuestion);
+    }
+
 }
 
 

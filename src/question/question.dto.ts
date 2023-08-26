@@ -2,19 +2,20 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf } from 'class-validator';
 import { Choice, Question, UserQset, ViewHistory } from './question.entity';
 import { UserDto } from 'src/account/account.dto';
+import { Qtype } from './question.enum';
 
 
 export class QuestionInCreate {
     
-    @ApiProperty({example: false, default: false})
-    isOfficial: boolean;
+    @ApiProperty({example: 'personal'})
+    Qtype: Qtype;
 
     @ApiProperty({example: '질문 제목'})
     @IsNotEmpty()
     title: string;
 
     @ApiProperty({example: ['투표 선택지1', '투표 선택지2']})
-    @ValidateIf((obj) => !obj.isOfficial)
+    @ValidateIf((obj) => obj.Qtype == Qtype.Personal)
     @IsArray()
     @ArrayMinSize(1)
     @ArrayMaxSize(6)
@@ -103,7 +104,7 @@ export class QuestionDto {
         this.title = question.title;
         this.choiceList = question.choiceList;
         this.backgroundImage = question.backgroundImage;
-        this.isOfficial = question.isOfficial;
+        this.Qtype = question.Qtype;
         this.isBlind = question.isBlind;
         this.createdAt = question.createdAt;
         this.updatedAt = question.updatedAt;
@@ -116,13 +117,13 @@ export class QuestionDto {
         }
     }
 
-    @ApiProperty({type: Number})
+    @ApiProperty({ type: Number })
     id: number;
     
     @ApiProperty({type: UserDto})
     owner: UserDto;
 
-    @ApiProperty({type: String})
+    @ApiProperty({ type: String })
     title: string;
 
     @ApiProperty({type: [String]})
@@ -131,8 +132,8 @@ export class QuestionDto {
     @ApiProperty({ type: String })
     backgroundImage: URL;
 
-    @ApiProperty({ type: Boolean })
-    isOfficial: boolean
+    @ApiProperty({ type: String })
+    Qtype: string
 
     @ApiProperty({ type: Boolean })
     isBlind: boolean;
@@ -157,6 +158,7 @@ export class QuestionFetchDto {
         this.id = question.id;
         this.owner = new UserDto(question.owner);
         this.title = question.title;
+        this.Qtype = question.Qtype;
         this.backgroundImage = question.backgroundImage;
         this.choiceCount = question.choices.length;
         this.viewCount = question.viewHistories.length;
@@ -173,6 +175,9 @@ export class QuestionFetchDto {
 
     @ApiProperty({ type: String })
     title: string;
+
+    @ApiProperty({ type: String })
+    Qtype: string;
 
     @ApiProperty({ type: String })
     backgroundImage: URL;
