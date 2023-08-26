@@ -26,6 +26,7 @@ export class QuestionRepository extends Repository<Question> {
     async fetchQuestions(offset: number, limit: number): Promise<Question[]> {
         const questions = await this.find({
             relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
+            where: { isBlind: false },
             skip: offset,
             take: limit,
         })
@@ -36,8 +37,9 @@ export class QuestionRepository extends Repository<Question> {
         const questions = await this.find({
             relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
             where: { 
-                "owner" : { id: targetUserId },
-                "Qtype" : Qtype,
+                owner : { id: targetUserId },
+                Qtype : Qtype,
+                isBlind : false,
             },
             skip: offset,
             take: limit,
@@ -49,9 +51,7 @@ export class QuestionRepository extends Repository<Question> {
     async getQuestionById(id: number): Promise<Question> {
         const question = await this.findOne({
             relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
-            where: { 
-                "id" : id,
-            }
+            where: { id : id }
         })
         if(question) {
             return question;

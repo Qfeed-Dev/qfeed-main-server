@@ -158,6 +158,7 @@ export class QuestionFetchDto {
         this.id = question.id;
         this.owner = new UserDto(question.owner);
         this.title = question.title;
+        this.Qtype = question.Qtype;
         this.backgroundImage = question.backgroundImage;
         this.choiceCount = question.choices.length;
         this.viewCount = question.viewHistories.length;
@@ -174,6 +175,9 @@ export class QuestionFetchDto {
 
     @ApiProperty({ type: String })
     title: string;
+
+    @ApiProperty({ type: String })
+    Qtype: string;
 
     @ApiProperty({ type: String })
     backgroundImage: URL;
