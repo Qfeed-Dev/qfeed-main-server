@@ -170,7 +170,7 @@ export class QuestionFetchDto {
     @ApiProperty({ type: Number })
     id: number;
 
-    @ApiProperty({ type: () => UserDto })
+    @ApiProperty({ type: UserDto })
     owner: UserDto;
 
     @ApiProperty({ type: String })
@@ -210,7 +210,7 @@ export class QuestionsResponse {
     @ApiProperty({type: Number})
     count: number;
     
-    @ApiProperty({type: () => [QuestionFetchDto]})
+    @ApiProperty({type: [QuestionFetchDto]})
     data: QuestionFetchDto[];
 
 }
@@ -232,7 +232,7 @@ export class UserQsetDto {
     @ApiProperty({ type: Number })
     id: number;
 
-    @ApiProperty({ type: () => UserDto })
+    @ApiProperty({ type: UserDto })
     user: UserDto;
 
     @ApiProperty({ type: String })
