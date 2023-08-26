@@ -66,14 +66,16 @@ export class AccountController {
     @ApiOperation({ summary: 'fetch followings' })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
+    @ApiQuery({ name: 'keyword', required: false, type: String })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     async fetchFollowings(
         @CurrentUser() user: Account, 
+        @Query('keyword') keyword: string = "",
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
     ): Promise<UsersResponse> {
-        return await this.accountService.fetchFollowings(user, offset, limit);
+        return await this.accountService.fetchFollowings(user, keyword, offset, limit);
     }
 
     @Get('/me/followers')
@@ -105,7 +107,6 @@ export class AccountController {
         return await this.accountService.fetch(keyword, offset, limit);
     }
 
-  
 
     @ApiOperation({ summary: 'me update' })
     @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })

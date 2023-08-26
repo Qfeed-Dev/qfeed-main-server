@@ -112,12 +112,13 @@ export class FollowRepository extends Repository<Follow> {
         }
     }
 
-    async fetchFollowings(user: Account, offset: number, limit: number): Promise<Follow[]> {
+    async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<Follow[]> {
         const follows = await this.find({
             relations: ["targetUser"],
-            where: {
-                "user":  { "id": user.id },
-            },
+            where: [
+                { id: user.id,  targetUser: { name: Like(`%${keyword}%`)} },
+                { id: user.id,  targetUser: { nickname: Like(`%${keyword}%`)} },
+            ],
             skip: offset,
             take: limit,
         })

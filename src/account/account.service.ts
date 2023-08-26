@@ -91,8 +91,6 @@ export class AccountService {
                 { name : Like(`%${keyword}%`) },
                 { nickname: Like(`%${keyword}%`) }
             ],
-            skip: offset,
-            take: limit,
         });
         
         return new UsersResponse(
@@ -181,11 +179,14 @@ export class AccountService {
         return targetUser;
     }
 
-    async fetchFollowings(user: Account, offset: number, limit: number): Promise<UsersResponse> {
-        const followings = await this.followRepository.fetchFollowings(user, offset, limit);
-        const count = await this.followRepository.count(
-            { where: {"user": {"id": user.id} } }
-        );
+    async fetchFollowings(user: Account, keyword:string, offset: number, limit: number): Promise<UsersResponse> {
+        const followings = await this.followRepository.fetchFollowings(user, keyword, offset, limit);
+        const count = await this.followRepository.count({
+            where: [
+                { user: {id: user.id}, targetUser: { name: Like(`%${keyword}%`) } },
+                { user: {id: user.id}, targetUser: { nickname: Like(`%${keyword}%`) } }
+            ]
+        });
 
         return new UsersResponse(
             followings.map((follow: Follow) => new UserDto(follow.targetUser)),
