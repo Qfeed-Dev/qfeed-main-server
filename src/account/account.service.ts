@@ -10,7 +10,7 @@ import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
 import { Account, Follow } from './account.entity';
-import { Like } from 'typeorm';
+import { In, Like, Not } from 'typeorm';
 
 
 
@@ -91,8 +91,6 @@ export class AccountService {
                 { name : Like(`%${keyword}%`) },
                 { nickname: Like(`%${keyword}%`) }
             ],
-            skip: offset,
-            take: limit,
         });
         
         return new UsersResponse(
@@ -181,11 +179,14 @@ export class AccountService {
         return targetUser;
     }
 
-    async fetchFollowings(user: Account, offset: number, limit: number): Promise<UsersResponse> {
-        const followings = await this.followRepository.fetchFollowings(user, offset, limit);
-        const count = await this.followRepository.count(
-            { where: {"user": {"id": user.id} } }
-        );
+    async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
+        const followings = await this.followRepository.fetchFollowings(user, keyword, offset, limit);
+        const count = await this.followRepository.count({
+            where: [
+                { user: {id: user.id}, targetUser: { name: Like(`%${keyword}%`) } },
+                { user: {id: user.id}, targetUser: { nickname: Like(`%${keyword}%`) } }
+            ]
+        });
 
         return new UsersResponse(
             followings.map((follow: Follow) => new UserDto(follow.targetUser)),
@@ -205,4 +206,22 @@ export class AccountService {
         );
     }
 
+
+    async fetchUnfollowings(user: Account, offset: number, limit: number): Promise<UsersResponse> {
+        const followings = await this.followRepository.find({
+            relations: ["targetUser"],
+            where: { user: { id: user.id } },
+        });
+        const followingIds = followings.map((follow: Follow) => follow.targetUser.id);
+        const unfollowingUsers = await this.accountRepository.fetchUnfollowings(user, followingIds, offset, limit);
+        const count = await this.accountRepository.count({
+            where: {
+                id: Not(In(followingIds.concat(user.id))),
+            },
+        });
+        return new UsersResponse(
+            unfollowingUsers.map((account: Account) => new UserDto(account)),
+            count
+        );
+    }  
 }
