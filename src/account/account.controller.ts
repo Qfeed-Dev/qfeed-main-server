@@ -51,6 +51,16 @@ export class AccountController {
         return new AccountDto(account);
     }
 
+    @ApiOperation({ summary: 'me update' })
+    @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('/me')
+    async updateAccount(@CurrentUser() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
+        const updatedAccount = await this.accountService.update(account.id, AccountInUpdate);
+        return new AccountDto(updatedAccount);
+    }
+
     @Delete('me/hard-delete')
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
@@ -121,25 +131,6 @@ export class AccountController {
     ): Promise<UsersResponse> {
         return await this.accountService.fetch(keyword, offset, limit);
     }
-
-
-
-
-    
-
-
-    @ApiOperation({ summary: 'me update' })
-    @ApiResponse({ status: 200, description: 'Account info about myself', type: AccountDto })
-    @ApiBearerAuth('JWT')
-    @UseGuards(AuthGuard('jwt'))
-    @Patch('/me')
-    async updateAccount(@CurrentUser() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
-        const updatedAccount = await this.accountService.update(account.id, AccountInUpdate);
-        return new AccountDto(updatedAccount);
-    }
-
-
-
 
     @ApiOperation({ summary: 'get user' })
     @ApiResponse({ status: 200, description: 'Account info about target user', type: AccountDto })
