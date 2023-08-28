@@ -172,7 +172,7 @@ export class UserQsetRepository extends Repository<UserQset> {
         return userQsets
     }
     
-    async getLastUserQsetBy(user: Account): Promise<UserQset> {
+    async getLastUserQset(user: Account): Promise<UserQset> {
         const UserQset = await this.findOne({
             relations: ['user', 'Qset'],
             where: {

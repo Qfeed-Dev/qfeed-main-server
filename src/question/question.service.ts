@@ -83,14 +83,21 @@ export class QuestionService {
 
     async getTodayUserQset(user: Account): Promise<UserQset[]> {
         const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
+        if (todayUserQsets.length == 0) {
+            const lastUserQset = await this.userQsetRepository.getLastUserQset(user);
+            return [lastUserQset];
+        }
         return todayUserQsets;
     }
 
     async createUserQset(user: Account) {
         // TODO: transaction 으로 묶기 or outer join with history 고려
         const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
-        if (todayUserQsets.length >= 2) {
+        if (todayUserQsets.length == 2) {
             throw new BadRequestException(`already created 2 userQset today`);
+        }
+        if (todayUserQsets.length == 1 && !todayUserQsets[0].isDone) {
+            throw new BadRequestException(`exist not done userQset`);
         }
         const userQsetList = await this.userQsetRepository.fetchDoneUserQset(user);
         const excludedQsetIds = userQsetList.map((userQset: UserQset) => userQset.Qset.id);
