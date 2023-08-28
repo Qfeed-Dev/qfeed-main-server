@@ -84,9 +84,6 @@ export class AccountInUpdate {
 }
 
 
-
-
-
 export class checkNickname{
 
     constructor(nickname: string, available: boolean, message: string) {
@@ -104,6 +101,7 @@ export class checkNickname{
     @ApiProperty({example: '사용 가능한 닉네임 입니다.'})
     message: string;
 }
+
 
 export class AccountDto {
     constructor(account: Account) {
@@ -212,6 +210,7 @@ export class UsersResponse {
     data: UserDto[];
 
 }
+
 export class TokenDto {
 
     constructor(token: string, expireTime: Date) {
