@@ -5,7 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname } from './account.dto';
+import { AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname, UserProfileDto, UsersProfileResponse } from './account.dto';
 import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
@@ -84,8 +84,9 @@ export class AccountService {
         await this.accountRepository.deleteAccountById(id)
     }
 
-    async fetch(keyword:string, offset: number, limit: number): Promise<UsersResponse> {
+    async fetch(user: Account, keyword: string, offset: number, limit: number): Promise<UsersProfileResponse> {
         const accounts = await this.accountRepository.fetchAccounts(keyword, offset, limit);
+        console.log(accounts)
         const count = await this.accountRepository.count({
             where: [
                 { name : Like(`%${keyword}%`) },
@@ -93,8 +94,8 @@ export class AccountService {
             ],
         });
         
-        return new UsersResponse(
-            accounts.map((account: Account) => new UserDto(account)),
+        return new UsersProfileResponse(
+            accounts.map((account: Account) => new UserProfileDto(user.id, account)),
             count
         );
     }

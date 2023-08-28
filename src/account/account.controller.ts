@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { AccountDto, AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname } from './account.dto';
+import { AccountDto, AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname, UsersProfileResponse } from './account.dto';
 import { AccountService } from './account.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from './get-user.decorator';
@@ -119,17 +119,20 @@ export class AccountController {
     }
 
     @Get('/fetch')
-    @ApiResponse({ status: 200, description: 'fetch users', type: UsersResponse })
+    @ApiResponse({ status: 200, description: 'fetch users', type: UsersProfileResponse })
     @ApiOperation({ summary: 'fetch users' })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
     @ApiQuery({ name: 'keyword', required: false, type: String })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     async fetchUsers(
+        @CurrentUser() user: Account,
         @Query('keyword') keyword: string = "",
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
-    ): Promise<UsersResponse> {
-        return await this.accountService.fetch(keyword, offset, limit);
+    ): Promise<UsersProfileResponse> {
+        return await this.accountService.fetch(user, keyword, offset, limit);
     }
 
     @ApiOperation({ summary: 'get user' })

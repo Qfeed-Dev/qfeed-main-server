@@ -196,6 +196,44 @@ export class UserDto {
 
 }
 
+export class UserProfileDto {
+
+    constructor(currentUserId:number, account: Account) {
+        this.id = account.id;
+        this.name = account.name;
+        this.nickname = account.nickname;
+        this.profileImage = account.profileImage;
+        this.schoolName = account.schoolName;
+        this.grade = account.grade;
+        this.gender = account.gender;
+        this.isFollowing = account.followers.some((follow) => follow.user.id === currentUserId);
+    }
+
+    @ApiProperty({example: 1})
+    id: number;
+
+    @ApiProperty({example: "김피드"})
+    name: string;
+
+    @ApiProperty({example: "김피드"})
+    nickname: string;
+
+    @ApiProperty({example: "https://blog.kakaocdn.net/dn/KdDOI/btrmGgNlqab/qlMwwXNvHSbjN0kFeIoVuK/img.jpg"})
+    profileImage: URL;
+
+    @ApiProperty({example: "큐피대학교"})
+    schoolName: string;
+
+    @ApiProperty({example: "20학번"})
+    grade: string; // 20학번 or 1학년
+
+    @ApiProperty({example: "남"})
+    gender: Gender; 
+
+    @ApiProperty({example: true})
+    isFollowing: boolean;
+}
+
 
 export class UsersResponse {
     constructor(data: UserDto[], count: number) {
@@ -210,6 +248,22 @@ export class UsersResponse {
     data: UserDto[];
 
 }
+
+//  Todo: UsersResponse 와 통합 고려
+export class UsersProfileResponse {
+    constructor(data: UserProfileDto[], count: number) {
+        this.count = count;
+        this.data = data;
+    }
+
+    @ApiProperty({ type: Number })
+    count: number;
+
+    @ApiProperty({ type: [UserProfileDto] })
+    data: UserProfileDto[];
+
+}
+
 
 export class TokenDto {
 

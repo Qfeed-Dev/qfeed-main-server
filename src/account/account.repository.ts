@@ -67,6 +67,7 @@ export class AccountRepository extends Repository<Account> {
 
     async fetchAccounts(keyword: string, offset: number, limit: number): Promise<Account[]> {
         const accounts = await this.find({
+            relations: ["followers.user",],
             where: [
                 { name : Like(`%${keyword}%`) },
                 { nickname: Like(`%${keyword}%`) }

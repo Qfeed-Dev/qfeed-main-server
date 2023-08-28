@@ -62,10 +62,10 @@ export class Account extends TimeEntity {
     @OneToMany(() => Question, (question) => question.owner)
     questions: Question[]
 
-    @OneToMany(() => Follow, (follow) => follow.targetUser)
-    following: Follow[]
-
     @OneToMany(() => Follow, (follow) => follow.user)
+    followings: Follow[]
+
+    @OneToMany(() => Follow, (follow) => follow.targetUser)
     followers: Follow[]
 
 }
@@ -77,7 +77,7 @@ export class Follow extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Account, (user) => user.following)
+    @ManyToOne(() => Account, (user) => user.followings)
     user: Account;
 
     @ManyToOne(() => Account, (user) => user.followers)
