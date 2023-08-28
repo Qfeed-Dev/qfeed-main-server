@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChoiceRepository, ViewHistoryRepository, QuestionRepository, QsetRepository, UserQsetRepository} from './question.repository';
 import { Account } from 'src/account/account.entity';
@@ -25,7 +25,6 @@ export class QuestionService {
 
         @InjectRepository(UserQsetRepository)
         private userQsetRepository: UserQsetRepository,
-
 
     ) {}
     
@@ -73,7 +72,6 @@ export class QuestionService {
         return choice;
     }
 
-
     async getChoiceById(questionId: number, id: number): Promise<Choice> {
         return await this.choiceRepository.getChoiceById(questionId, id);
     }
@@ -83,24 +81,32 @@ export class QuestionService {
         return viewHistory;
     }
 
-
-    async getCurrentUserQset(user: Account): Promise<UserQset> {
-        const userQset = await this.userQsetRepository.getBy(user);
-        return userQset;
+    async getTodayUserQset(user: Account): Promise<UserQset[]> {
+        const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
+        return todayUserQsets;
     }
-
 
     async createUserQset(user: Account) {
         // TODO: transaction 으로 묶기 or outer join with history 고려
-        const userQsetList = await this.userQsetRepository.fetchBy(user);
+        const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
+        if (todayUserQsets.length >= 2) {
+            throw new BadRequestException(`already created 2 userQset today`);
+        }
+        const userQsetList = await this.userQsetRepository.fetchDoneUserQset(user);
         const excludedQsetIds = userQsetList.map((userQset: UserQset) => userQset.Qset.id);
         const newQset = await this.QsetRepository.getNewQset(excludedQsetIds);
         const userQset = await this.userQsetRepository.createBy(user, newQset);
         return userQset;
     }
 
-    async passUseQ(user: Account): Promise<UserQset> {
-        const CurrentUserQset = await this.userQsetRepository.getBy(user);
+    async passUserQ(user: Account, userQsetId: number): Promise<UserQset> {
+        const CurrentUserQset = await this.userQsetRepository.getUserQset(userQsetId);
+        if (CurrentUserQset.user.id !== user.id) {
+            throw new BadRequestException(`Can't pass other user's qset`);
+        }
+        if (CurrentUserQset.isDone) {
+            throw new BadRequestException(`already done`);
+        }
         if (++CurrentUserQset.cursor == CurrentUserQset.Qset.QList.length) {
             CurrentUserQset.isDone = true;
             CurrentUserQset.endAt = new Date();

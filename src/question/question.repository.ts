@@ -1,7 +1,7 @@
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Choice, Qset, UserQset, Question, ViewHistory } from "./question.entity";
-import { In, Not, Repository } from "typeorm";
+import { Between, In, Not, Repository } from "typeorm";
 import { QuestionInCreate } from "./question.dto";
 import { Account } from "src/account/account.entity";
 import { Qtype } from "./question.enum";
@@ -161,7 +161,7 @@ export class QsetRepository extends Repository<Qset> {
 @CustomRepository(UserQset)
 export class UserQsetRepository extends Repository<UserQset> {
 
-    async fetchBy(user: Account): Promise<UserQset[]> {
+    async fetchDoneUserQset(user: Account): Promise<UserQset[]> {
         const userQsets = await this.find({
             relations: ['Qset'],
             where: {
@@ -172,18 +172,33 @@ export class UserQsetRepository extends Repository<UserQset> {
         return userQsets
     }
     
-    async getBy(user: Account): Promise<UserQset> {
+    async getLastUserQsetBy(user: Account): Promise<UserQset> {
         const UserQset = await this.findOne({
             relations: ['user', 'Qset'],
             where: {
                 user: { id: user.id },
-                isDone: false,
             },
+            order: { startAt: 'DESC' },
         })
         if (UserQset) {
             return UserQset;
         }
-        throw new NotFoundException(`Can't find running Qset`);
+        throw new NotFoundException(`Can't find UserQset`);
+    }
+
+    async getTodayUserQsets(user: Account): Promise<UserQset[]> {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return await this.find({
+            relations: ['user', 'Qset'],
+            where: {
+                user: { id: user.id },
+                startAt: Between(today, tomorrow),
+            },
+            order: { startAt: 'DESC' },
+        })
     }
     
     async createBy(user: Account, Qset: Qset): Promise<UserQset> {
@@ -197,6 +212,18 @@ export class UserQsetRepository extends Repository<UserQset> {
                 throw new ConflictException('already create useQset in Qset');
             }
             throw new InternalServerErrorException('create useQset failed');
+        }
+    }
+
+    async getUserQset(userQsetId: number): Promise<UserQset> {
+        const userQset = await this.findOne({
+            relations: ['user', 'Qset'],
+            where: { id : userQsetId }
+        })
+        if(userQset) {
+            return userQset;
+        } else {
+            throw new NotFoundException(`Can't find userQset with id: ${userQsetId}`);
         }
     }
 

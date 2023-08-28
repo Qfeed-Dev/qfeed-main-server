@@ -26,26 +26,27 @@ export class QuestionController {
     }
 
     @ApiOperation({ summary: 'get UserQset' })
-    @ApiResponse({ status: 200, type: UserQsetDto })
+    @ApiResponse({ status: 200, type: [UserQsetDto] })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
-    @Get('/q-set')
+    @Get('/q-set/today')
     async getUserQset(
         @CurrentUser() user: Account,
     ) {
-        const userQset = await this.questionService.getCurrentUserQset(user);
-        return new UserQsetDto(userQset);
+        const todayUserQsets = await this.questionService.getTodayUserQset(user);
+        return todayUserQsets.map((userQset) => new UserQsetDto(userQset));
     }
 
     @ApiOperation({ summary: 'Pass UserQ' })
     @ApiResponse({ status: 200, type: UserQsetDto })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
-    @Patch('/q-set/pass')
-    async passUseQ(
+    @Patch('/q-set/:userQsetId/pass')
+    async passUserQ(
         @CurrentUser() user: Account,
+        @Param('userQsetId') userQsetId: number,
     ) {
-        const userQset = await this.questionService.passUseQ(user);
+        const userQset = await this.questionService.passUserQ(user, userQsetId);
         return new UserQsetDto(userQset);
     }
 
