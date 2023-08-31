@@ -19,6 +19,9 @@ export class QuestionRepository extends Repository<Question> {
             await this.save(question);
             return question;
         } catch (error) {
+            if (error.code === '23505') {
+                throw new ConflictException(`already create this title in user [${QuestionInCreate.title}]`);
+            }
             throw new InternalServerErrorException('create question failed');
         }
     }
@@ -60,7 +63,7 @@ export class QuestionRepository extends Repository<Question> {
         }
     }
 
-    async getOrCreateUserQ(targetUser: Account, title: string): Promise<Question> {
+    async getOrCreateOfficialQ(targetUser: Account, title: string): Promise<Question> {
         const question = await this.findOne({
             where: { 
                 owner : { id: targetUser.id },

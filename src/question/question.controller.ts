@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Patch, Query, UseGuards, Param } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
-import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto } from './question.dto';
+import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto, ChoiceInUserQ } from './question.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
@@ -49,6 +49,21 @@ export class QuestionController {
         const userQset = await this.questionService.passUserQ(user, userQsetId);
         return new UserQsetDto(userQset);
     }
+
+    @ApiOperation({ summary: 'choice in Qset' })
+    @ApiResponse({ status: 201, type: UserQsetDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Post('/q-set/:userQsetId/choice')
+    async choiceUserQ(
+        @CurrentUser() user: Account,
+        @Param('userQsetId') userQsetId: number,
+        @Body() choiceInUserQ: ChoiceInUserQ
+    ) {
+        const userQset = await this.questionService.choiceUserQ(user, userQsetId, choiceInUserQ);
+        return new UserQsetDto(userQset);
+    }
+
 
     @ApiOperation({ summary: 'create question' })
     @ApiResponse({ status: 201,  type: QuestionDto })
