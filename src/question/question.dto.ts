@@ -39,6 +39,18 @@ export class ChoiceInCreate {
 
 }
 
+export class ChoiceInUserQ {
+    
+        @ApiProperty({example: 1})
+        @IsNotEmpty()
+        targetUserId: number;
+
+        @ApiProperty({example: '투표한 친구에게 한마디 작성하세요'})
+        @IsNotEmpty()
+        value: string;
+    
+}
+
 
 export class ViewHistoryDto {
         
