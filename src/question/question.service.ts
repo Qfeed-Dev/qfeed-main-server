@@ -150,14 +150,16 @@ export class QuestionService {
         try{
             await this.entityManager.transaction(async transactionalEntityManager => {
                 const question = await this.questionRepository.getOrCreateOfficialQ(targetUser, title);
-                await this.choiceRepository.createChoice(user, question, choiceInUserQ.value);
+                const choice = await this.choiceRepository.createChoice(user, question, choiceInUserQ.value);
                 nextUserQset = await this.passUserQ(user, userQsetId);
-                await transactionalEntityManager.save(Question);
-                await transactionalEntityManager.save(Choice);
-                await transactionalEntityManager.save(UserQset);
+                await transactionalEntityManager.save(question);
+                await transactionalEntityManager.save(choice);
+                await transactionalEntityManager.save(nextUserQset);
             });
         } catch (error) {
-            throw new ConflictException(`[TRANSACTION] choice failed ]`);
+            if (error instanceof ConflictException)
+                throw error;
+            throw new ConflictException(`[TRANSACTION] choice failed`);
         }
         return nextUserQset;
 
