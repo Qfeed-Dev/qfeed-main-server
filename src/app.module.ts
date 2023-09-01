@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeORMConfig } from './db/typeorm.config';
 import { FileModule } from './file/file.module';
 import { QuestionModule } from './question/question.module';
+import { ChatroomModule } from './chatroom/chatroom.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { QuestionModule } from './question/question.module';
     AccountModule,
     FileModule,
     QuestionModule,
+    ChatroomModule,
   ],
   controllers: [AppController],
   providers: [AppService],
