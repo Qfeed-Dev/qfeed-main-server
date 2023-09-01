@@ -74,7 +74,7 @@ export class QuestionService {
         if (question.owner.id === user.id) {
             throw new BadRequestException(`Can't choice your question`)
         }
-        if (question.choiceList && !(value in question.choiceList)) {
+        if (question.choiceList && !(question.choiceList.includes(value))) {
             throw new BadRequestException(`choice value is not in ${question.choiceList}`)
         }
         const choice = this.choiceRepository.createChoice(user, question, value);
