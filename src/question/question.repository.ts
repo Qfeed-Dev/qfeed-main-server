@@ -175,7 +175,7 @@ export class UserQsetRepository extends Repository<UserQset> {
         return userQsets
     }
     
-    async getLastUserQset(user: Account): Promise<UserQset> {
+    async getLastUserQset(user: Account): Promise<UserQset[]> {
         const UserQset = await this.findOne({
             relations: ['user', 'Qset'],
             where: {
@@ -184,9 +184,9 @@ export class UserQsetRepository extends Repository<UserQset> {
             order: { startAt: 'DESC' },
         })
         if (UserQset) {
-            return UserQset;
+            return [UserQset];
         }
-        throw new NotFoundException(`Can't find UserQset`);
+        return []
     }
 
     async getTodayUserQsets(user: Account): Promise<UserQset[]> {

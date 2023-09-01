@@ -93,8 +93,7 @@ export class QuestionService {
     async getTodayUserQset(user: Account): Promise<UserQset[]> {
         const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
         if (todayUserQsets.length == 0) {
-            const lastUserQset = await this.userQsetRepository.getLastUserQset(user);
-            return [lastUserQset];
+            return await this.userQsetRepository.getLastUserQset(user);
         }
         return todayUserQsets;
     }
