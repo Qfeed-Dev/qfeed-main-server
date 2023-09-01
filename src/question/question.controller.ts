@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Patch, Query, UseGuards, Param } from '@nestjs/common';
+import { Body, Controller, Get, Post, Patch, Query, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
 import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto, ChoiceInUserQ } from './question.dto';
@@ -12,6 +12,35 @@ import { Qtype } from './question.enum';
 export class QuestionController {
     
     constructor(private readonly questionService: QuestionService) {}
+
+    @ApiOperation({ summary: 'create question' })
+    @ApiResponse({ status: 201,  type: QuestionDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Post('/')
+    async createQuestion(
+        @CurrentUser() account: Account,
+        @Body() QuestionInCreate: QuestionInCreate,
+    ) {
+        const question = await this.questionService.createQuestion(account, QuestionInCreate);
+        return new QuestionDto(question);
+    }
+
+    @ApiOperation({ summary: 'fetch questions' })
+    @ApiResponse({ status: 200,  type: QuestionsResponse })
+    @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'offset', required: false, type: Number })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Get('/')
+    async fetchQuestions(
+        @CurrentUser() user: Account,
+        @Query('offset') offset: number = 0,
+        @Query('limit') limit: number = 20,
+    ): Promise<QuestionsResponse> {
+        return await this.questionService.fetchQuestions(user, offset, limit);
+    }
+
 
     @ApiOperation({ summary: 'create UserQset' })
     @ApiResponse({ status: 201, type: UserQsetDto })
@@ -44,7 +73,7 @@ export class QuestionController {
     @Patch('/q-set/:userQsetId/pass')
     async passUserQ(
         @CurrentUser() user: Account,
-        @Param('userQsetId') userQsetId: number,
+        @Param('userQsetId', ParseIntPipe) userQsetId: number,
     ) {
         const userQset = await this.questionService.passUserQ(user, userQsetId);
         return new UserQsetDto(userQset);
@@ -57,41 +86,13 @@ export class QuestionController {
     @Post('/q-set/:userQsetId/choice')
     async choiceUserQ(
         @CurrentUser() user: Account,
-        @Param('userQsetId') userQsetId: number,
+        @Param('userQsetId', ParseIntPipe) userQsetId: number,
         @Body() choiceInUserQ: ChoiceInUserQ
     ) {
         const userQset = await this.questionService.choiceUserQ(user, userQsetId, choiceInUserQ);
         return new UserQsetDto(userQset);
     }
 
-
-    @ApiOperation({ summary: 'create question' })
-    @ApiResponse({ status: 201,  type: QuestionDto })
-    @ApiBearerAuth('JWT')
-    @UseGuards(AuthGuard('jwt'))
-    @Post('/')
-    async createQuestion(
-        @CurrentUser() account: Account,
-        @Body() QuestionInCreate: QuestionInCreate,
-    ) {
-        const question = await this.questionService.createQuestion(account, QuestionInCreate);
-        return new QuestionDto(question);
-    }
-
-    @ApiOperation({ summary: 'fetch questions' })
-    @ApiResponse({ status: 200,  type: QuestionsResponse })
-    @ApiQuery({ name: 'limit', required: false, type: Number })
-    @ApiQuery({ name: 'offset', required: false, type: Number })
-    @ApiBearerAuth('JWT')
-    @UseGuards(AuthGuard('jwt'))
-    @Get('/')
-    async fetchQuestions(
-        @CurrentUser() user: Account,
-        @Query('offset') offset: number = 0,
-        @Query('limit') limit: number = 20,
-    ): Promise<QuestionsResponse> {
-        return await this.questionService.fetchQuestions(user, offset, limit);
-    }
 
     @ApiOperation({ summary: 'fetch user questions' })
     @ApiResponse({ status: 200,  type: QuestionsResponse })
@@ -103,7 +104,7 @@ export class QuestionController {
     @Get('/user/:userId')
     async fetchUserQuestions(
         @CurrentUser() currentUser: Account,
-        @Param('userId') userId: number,
+        @Param('userId', ParseIntPipe) userId: number,
         @Query('Qtype') Qtype: Qtype,
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
@@ -119,7 +120,7 @@ export class QuestionController {
     @Get('/:questionId')
     async getQuestionById(
         @CurrentUser() user: Account,
-        @Param('questionId') questionId: number,
+        @Param('questionId', ParseIntPipe) questionId: number,
     ): Promise<QuestionDto> {
         const question = await this.questionService.getQuestionById(questionId);
         await this.questionService.getOrCreateViewHistory(user, question);
@@ -133,7 +134,7 @@ export class QuestionController {
     @Post('/:questionId/choices')
     async createChoice(
         @CurrentUser() user: Account,
-        @Param('questionId') questionId: number,
+        @Param('questionId', ParseIntPipe) questionId: number,
         @Body() choiceInCreate: ChoiceInCreate,
     ) {
         const choice = await this.questionService.createChoice(user, questionId, choiceInCreate.value);

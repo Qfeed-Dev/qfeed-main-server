@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards, Param } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { AccountDto, AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname, UsersProfileResponse } from './account.dto';
 import { AccountService } from './account.service';
@@ -138,7 +138,7 @@ export class AccountController {
     @ApiOperation({ summary: 'get user' })
     @ApiResponse({ status: 200, description: 'Account info about target user', type: AccountDto })
     @Get('/:id')
-    async getUser(@Param('id') id: number): Promise<AccountDto>  {
+    async getUser(@Param('id', ParseIntPipe) id: number): Promise<AccountDto>  {
         const account = await this.accountService.getAccountById(id);
         return new AccountDto(account);
     }
@@ -150,7 +150,7 @@ export class AccountController {
     @Post('/:targetUserId/follow')
     async followUser(
         @CurrentUser() user: Account,
-        @Param('targetUserId') targetUserId: number
+        @Param('targetUserId', ParseIntPipe) targetUserId: number
     ): Promise<UserDto> {
         const targetUser = await this.accountService.getAccountById(targetUserId);
         await this.accountService.followUser(user, targetUser);
@@ -164,7 +164,7 @@ export class AccountController {
     @Delete('/:targetUserId/unfollow')
     async unfollowUser(
         @CurrentUser() user: Account,
-        @Param('targetUserId') targetUserId: number
+        @Param('targetUserId', ParseIntPipe) targetUserId: number
     ): Promise<UserDto> {
         const targetUser = await this.accountService.getAccountById(targetUserId);
         await this.accountService.unfollowUser(user, targetUser);
