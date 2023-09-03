@@ -41,7 +41,10 @@ export class AccountRepository extends Repository<Account> {
     }
 
     async getAccountById(id: number): Promise<Account> {
-        const account = await this.findOne({where: {"id": id}})
+        const account = await this.findOne({
+            relations: ["followers.user",],
+            where: { id : id }
+        })
         if(account) {
             return account;
         } else {

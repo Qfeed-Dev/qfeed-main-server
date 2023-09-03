@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Post,Patch, Query, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
-import { AccountDto, AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname, UsersProfileResponse } from './account.dto';
+import { AccountDto, AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname, UsersProfileResponse, UserProfileDto } from './account.dto';
 import { AccountService } from './account.service';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from './get-user.decorator';
@@ -136,11 +136,16 @@ export class AccountController {
     }
 
     @ApiOperation({ summary: 'get user' })
-    @ApiResponse({ status: 200, description: 'Account info about target user', type: AccountDto })
+    @ApiResponse({ status: 200, description: 'Account info about target user', type: UserProfileDto })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
     @Get('/:id')
-    async getUser(@Param('id', ParseIntPipe) id: number): Promise<AccountDto>  {
+    async getUser(
+        @CurrentUser() user: Account,
+        @Param('id', ParseIntPipe) id: number
+    ): Promise<UserProfileDto>  {
         const account = await this.accountService.getAccountById(id);
-        return new AccountDto(account);
+        return new UserProfileDto(user.id, account);
     }
 
     @ApiOperation({ summary: 'follow user' })
