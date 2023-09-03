@@ -27,7 +27,7 @@ export class Question extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Account, (owner) => owner.questions)
+    @ManyToOne(() => Account, (owner) => owner.questions, { onDelete: 'CASCADE' })
     owner: Account
 
     @Column()
@@ -59,10 +59,10 @@ export class Choice extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Question, (question) => question.choices)
+    @ManyToOne(() => Question, (question) => question.choices, { onDelete: 'CASCADE' })
     question: Question
 
-    @ManyToOne(() => Account, (user) => user.id)
+    @ManyToOne(() => Account, (user) => user.id, { onDelete: 'CASCADE' })
     user: Account
 
     @Column()
@@ -77,10 +77,10 @@ export class ViewHistory extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Question, (question) => question.viewHistories)
+    @ManyToOne(() => Question, (question) => question.viewHistories, { onDelete: 'CASCADE' })
     question: Question
 
-    @ManyToOne(() => Account, (user) => user.id)
+    @ManyToOne(() => Account, (user) => user.id, { onDelete: 'CASCADE' })
     user: Account
 
 }
@@ -101,10 +101,10 @@ export class UserQset extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Qset, (Qset) => Qset.id)
+    @ManyToOne(() => Qset, (Qset) => Qset.id, { onDelete: 'CASCADE' })
     Qset: Qset
 
-    @ManyToOne(() => Account, (user) => user.id)
+    @ManyToOne(() => Account, (user) => user.id, { onDelete: 'CASCADE' })
     user: Account
 
     @Column()

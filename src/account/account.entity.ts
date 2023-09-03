@@ -77,10 +77,10 @@ export class Follow extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Account, (user) => user.followings)
+    @ManyToOne(() => Account, (user) => user.followings, { onDelete: 'CASCADE' })
     user: Account;
 
-    @ManyToOne(() => Account, (user) => user.followers)
+    @ManyToOne(() => Account, (user) => user.followers, { onDelete: 'CASCADE' })
     targetUser: Account;
 
 }

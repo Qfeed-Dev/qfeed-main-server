@@ -6,7 +6,8 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     ManyToOne,
-    UpdateDateColumn
+    UpdateDateColumn,
+    OneToMany
 } from "typeorm";
 
 
@@ -15,10 +16,10 @@ export class Chatroom extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Account, (owner) => owner.id)
+    @ManyToOne(() => Account, (owner) => owner.id, { onDelete: 'CASCADE' })
     owner: Account
 
-    @ManyToOne(() => Account, (targetUser) => targetUser.id)
+    @ManyToOne(() => Account, (targetUser) => targetUser.id, { onDelete: 'CASCADE' })
     targetUser: Account
 
     @Column()
@@ -46,10 +47,10 @@ export class Chat extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Account, (owner) => owner.id)
+    @ManyToOne(() => Account, (owner) => owner.id, { onDelete: 'CASCADE' })
     owner: Account
 
-    @ManyToOne(() => Chatroom, (chatroom) => chatroom.id)
+    @ManyToOne(() => Chatroom, (chatroom) => chatroom.id, { onDelete: 'CASCADE' })
     chatroom: Chatroom
 
     @Column()
