@@ -3,7 +3,7 @@ import { ConflictException, InternalServerErrorException, NotFoundException } fr
 import { Choice, Qset, UserQset, Question, ViewHistory } from "./question.entity";
 import { Between, In, Not, Repository } from "typeorm";
 import { QuestionInCreate } from "./question.dto";
-import { Account } from "src/account/account.entity";
+import { Account, Follow } from "src/account/account.entity";
 import { Qtype } from "./question.enum";
 
 
@@ -26,13 +26,21 @@ export class QuestionRepository extends Repository<Question> {
         }
     }
 
-    async fetchQuestions(offset: number, limit: number): Promise<Question[]> {
+    async fetchQuestions(user: Account , qtype: Qtype, offset: number, limit: number): Promise<Question[]> {
         const questions = await this.find({
             relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
-            where: { isBlind: false },
+            where: {
+                Qtype : qtype,
+                isBlind : false,
+                owner: { id : In(user.followings.map((follow: Follow) => follow.targetUser.id)) }
+            },
+            order: {
+                createdAt: 'DESC',
+            },
             skip: offset,
             take: limit,
         })
+            
         return questions
     }
 

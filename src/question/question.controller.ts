@@ -28,6 +28,7 @@ export class QuestionController {
 
     @ApiOperation({ summary: 'fetch questions' })
     @ApiResponse({ status: 200,  type: QuestionsResponse })
+    @ApiQuery({ name: 'Qtype', required: false, type: String })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiBearerAuth('JWT')
@@ -35,10 +36,11 @@ export class QuestionController {
     @Get('/')
     async fetchQuestions(
         @CurrentUser() user: Account,
+        @Query('Qtype') qtype: Qtype = Qtype.Personal,
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
     ): Promise<QuestionsResponse> {
-        return await this.questionService.fetchQuestions(user, offset, limit);
+        return await this.questionService.fetchFollowingQuestions(user, qtype, offset, limit);
     }
 
 
