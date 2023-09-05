@@ -1,12 +1,12 @@
 import { Injectable, BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; 
-import { EntityManager } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { ChoiceRepository, ViewHistoryRepository, QuestionRepository, QsetRepository, UserQsetRepository} from './question.repository';
-import { Account } from 'src/account/account.entity';
+import { Account, Follow } from 'src/account/account.entity';
 import { Choice, UserQset, Question, ViewHistory } from './question.entity';
 import { Qtype } from './question.enum';
 import { ChoiceInUserQ, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
-import { AccountRepository } from 'src/account/account.repository';
+import { AccountRepository, FollowRepository } from 'src/account/account.repository';
 
 
 @Injectable()
@@ -39,9 +39,20 @@ export class QuestionService {
         return await this.questionRepository.createQuestion(user, QuestionInCreate);
     }
 
-    async fetchQuestions(user: Account, offset: number, limit: number): Promise<QuestionsResponse> {
-        const questions = await this.questionRepository.fetchQuestions(offset, limit);
-        const count = await this.questionRepository.count();
+    async fetchFollowingQuestions(user: Account, qtype: Qtype, offset: number, limit: number): Promise<QuestionsResponse> {
+        const currentUser = await this.accountRepository.findOne({
+            relations: ["followings", "followings.targetUser"], 
+            where: { id: user.id }
+        })
+
+        const questions = await this.questionRepository.fetchQuestions(currentUser, qtype, offset, limit);
+        const count = await this.questionRepository.count({ 
+            where: { 
+                Qtype: qtype,
+                isBlind: false,
+                owner: { id: In(currentUser.followings.map( (follow: Follow) => follow.targetUser)) },
+            }
+        });
         
         return new QuestionsResponse(
             count, questions.map((question: Question) => new QuestionFetchDto(user.id, question))
