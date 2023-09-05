@@ -111,7 +111,8 @@ export class AccountService {
             throw new BadRequestException(error.response.data.error_description);
         }
     }
-    
+
+
     private async getKakaoAccessToken(code: string, redirectUrl: string) {
         const requestUrl = 'https://kauth.kakao.com/oauth/token';
         const requestConfig: AxiosRequestConfig = {
@@ -153,7 +154,17 @@ export class AccountService {
         return responseData;
     }
     
-    private async socialLogin(socialId: string, socialEmail: string): Promise<TokenDto> {
+    // TODO: 검증과정 추가, POST 로 변경, payload로 받기
+    async appleLogin(idToken: string): Promise<TokenDto>{
+        const userInfo = this.jwtService.decode(idToken)
+        if (!userInfo.hasOwnProperty('sub')) {
+            throw new BadRequestException('sub is required');
+        }
+        const token = await this.socialLogin(userInfo.sub, userInfo['email'] || null);
+        return token;
+    }
+
+    private async socialLogin(socialId: string, socialEmail: string | null ): Promise<TokenDto> {
         let account: Account;
         try {
             account = await this.accountRepository.getAccountBySocialId(socialId);
