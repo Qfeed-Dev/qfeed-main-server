@@ -32,7 +32,7 @@ export class QuestionRepository extends Repository<Question> {
             where: {
                 Qtype : qtype,
                 isBlind : false,
-                owner: { id : In(user.followings.map((follow: Follow) => follow.targetUser.id)) }
+                owner: {id : In(user.followings.map((follow: Follow) => follow.targetUser.id)) }
             },
             order: {
                 createdAt: 'DESC',

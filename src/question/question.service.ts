@@ -50,7 +50,7 @@ export class QuestionService {
             where: { 
                 Qtype: qtype,
                 isBlind: false,
-                owner: { id: In(currentUser.followings.map( (follow: Follow) => follow.targetUser)) },
+                owner: { id: In(currentUser.followings.map( (follow: Follow) => follow.targetUser.id) ) },
             }
         });
         
