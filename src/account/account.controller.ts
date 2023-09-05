@@ -35,6 +35,12 @@ export class AccountController {
         return await this.accountService.kakaoLogin(code, redirectUrl);
     }
 
+    @ApiOperation({ summary: 'apple login' })
+    @Get('/apple/login')
+    async appleLogin(@Query('idToken') idToken: string) {
+        return await this.accountService.appleLogin(idToken);
+    }
+
     @Get('/check-nickname')
     @ApiResponse({ status: 200, description: 'Check nickname', type: checkNickname })
     @ApiOperation({ summary: 'Check nickname' })
