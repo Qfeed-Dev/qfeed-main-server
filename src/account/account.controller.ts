@@ -63,7 +63,7 @@ export class AccountController {
     @UseGuards(AuthGuard('jwt'))
     @Patch('/me')
     async updateAccount(@CurrentUser() account: Account, @Body() AccountInUpdate: AccountInUpdate): Promise<AccountDto> {
-        const updatedAccount = await this.accountService.update(account.id, AccountInUpdate);
+        const updatedAccount = await this.accountService.updateAccount(account.id, AccountInUpdate);
         return new AccountDto(updatedAccount);
     }
 
