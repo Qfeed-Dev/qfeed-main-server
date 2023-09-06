@@ -101,6 +101,10 @@ export class QuestionService {
         return viewHistory;
     }
 
+    async getUserChoiceCount(user: Account, Qtype: Qtype): Promise<number> {
+        return await this.choiceRepository.getUserChoiceCount(user, Qtype);
+    }
+
     async getTodayUserQset(user: Account): Promise<UserQset[]> {
         const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
         if (todayUserQsets.length == 0) {
@@ -108,6 +112,7 @@ export class QuestionService {
         }
         return todayUserQsets;
     }
+
 
     async createUserQset(user: Account) {
         const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
