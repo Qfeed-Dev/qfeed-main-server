@@ -123,6 +123,18 @@ export class ChoiceRepository extends Repository<Choice> {
             throw new NotFoundException(`Can't find choice with id: ${id}`);
         }
     }
+
+    async getUserChoiceCount(user: Account, Qtype: Qtype): Promise<number> {
+        return await this.count({
+            where: {
+                question: { 
+                    Qtype: Qtype,
+                    owner: { id : user.id },
+                    isBlind: false,
+                 },
+            }
+        })
+    }
 }
 
 

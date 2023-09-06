@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Patch, Query, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
-import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto, ChoiceInUserQ } from './question.dto';
+import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto, ChoiceInUserQ, ChoiceCountResponse } from './question.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
@@ -55,6 +55,23 @@ export class QuestionController {
         const userQset = await this.questionService.createUserQset(user);
         return new UserQsetDto(userQset);
     }
+
+    @ApiOperation({ summary: 'get user choice count' })
+    @ApiResponse({ status: 200, type: ChoiceCountResponse })
+    @ApiQuery({ name: 'Qtype', required: true, enum: Qtype })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Get('/q-set/choice-count')
+    async getUserChoiceCount(
+        @CurrentUser() user: Account,
+        @Query('Qtype') qtype: Qtype = Qtype.Official,
+    ) {
+        const count = await this.questionService.getUserChoiceCount(user, qtype);
+        return new ChoiceCountResponse(qtype, count);
+    }
+
+
+
 
     @ApiOperation({ summary: 'get UserQset' })
     @ApiResponse({ status: 200, type: [UserQsetDto] })

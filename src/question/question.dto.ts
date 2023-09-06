@@ -107,6 +107,20 @@ export class ChoiceDto {
 
 }
 
+export class ChoiceCountResponse {
+    
+    constructor(Qtype: Qtype, count: number) {
+        this.Qtype = Qtype;
+        this.count = count;
+    }
+
+    @ApiProperty({ type: String })
+    Qtype: Qtype;
+
+    @ApiProperty({ type: Number })
+    count: number;
+}
+
 
 export class QuestionDto {
     
