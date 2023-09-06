@@ -1,4 +1,4 @@
-import { In, Like, Not, Repository } from "typeorm";
+import { In, Like, Not, QueryFailedError, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Account, Follow } from "./account.entity";
@@ -94,9 +94,17 @@ export class AccountRepository extends Repository<Account> {
 
 
     async updateAccount(id: number, AccountInUpdate: AccountInUpdate): Promise<Account> {
-        const account = await this.getAccountById(id);
-        Object.assign(account, AccountInUpdate);
-        return this.save(account);
+        try {
+            let account = await this.getAccountById(id);
+            Object.assign(account, AccountInUpdate);
+            return await this.save(account);
+        } catch (error) {
+            if(error.code === '23505') {
+                throw new ConflictException('Existing nickname');
+            }
+            throw new InternalServerErrorException('update failed');
+        }
+        
     }
 
     async deleteAccountById(id: number): Promise<void> {
