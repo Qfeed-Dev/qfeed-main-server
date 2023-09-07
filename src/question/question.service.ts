@@ -6,7 +6,7 @@ import { Account, Follow } from 'src/account/account.entity';
 import { Choice, UserQset, Question, ViewHistory } from './question.entity';
 import { Qtype } from './question.enum';
 import { ChoiceInUserQ, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
-import { AccountRepository, FollowRepository } from 'src/account/account.repository';
+import { AccountRepository } from 'src/account/account.repository';
 
 
 @Injectable()
