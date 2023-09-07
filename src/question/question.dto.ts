@@ -18,8 +18,7 @@ export class QuestionInCreate {
 
     @ApiProperty({example: ['투표 선택지1', '투표 선택지2']})
     @ValidateIf((obj) => obj.Qtype == Qtype.Personal)
-    @IsArray()
-    @IsArrayNotNull()
+    @IsArray({ each: true })
     @ArrayMinSize(1)
     @ArrayMaxSize(6)
     choiceList: string[];
@@ -284,6 +283,3 @@ export class UserQsetDto {
 
 }
 
-function IsArrayNotNull(): (target: QuestionInCreate, propertyKey: "choiceList") => void {
-    throw new Error('Function not implemented.');
-}
