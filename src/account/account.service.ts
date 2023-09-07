@@ -10,7 +10,7 @@ import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
 import { Account, Follow } from './account.entity';
-import { In, Like, Not } from 'typeorm';
+import { In, IsNull, Like, Not } from 'typeorm';
 
 
 
@@ -156,13 +156,20 @@ export class AccountService {
     
     // TODO: 검증과정 추가, POST 로 변경, payload로 받기
     async appleLogin(idToken: string): Promise<TokenDto>{
-        const userInfo = this.jwtService.decode(idToken)
-        if (!userInfo.hasOwnProperty('sub')) {
-            throw new BadRequestException('sub is required');
+        try {
+            const userInfo = this.jwtService.decode(idToken)
+            if (!userInfo.hasOwnProperty('sub')) {
+                throw new BadRequestException('sub is required');
+            }
+            const token = await this.socialLogin(userInfo.sub, userInfo['email'] || null);
+            return token;
         }
-        const token = await this.socialLogin(userInfo.sub, userInfo['email'] || null);
-        return token;
+        catch (error) {
+            throw new BadRequestException('invalid idToken');
+        }
+    
     }
+        
 
     private async socialLogin(socialId: string, socialEmail: string | null ): Promise<TokenDto> {
         let account: Account;
@@ -229,6 +236,7 @@ export class AccountService {
         const count = await this.accountRepository.count({
             where: {
                 id: Not(In(followingIds.concat(user.id))),
+                nickname: Not(IsNull())
             },
         });
         return new UsersResponse(

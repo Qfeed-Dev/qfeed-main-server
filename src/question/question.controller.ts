@@ -71,8 +71,6 @@ export class QuestionController {
     }
 
 
-
-
     @ApiOperation({ summary: 'get UserQset' })
     @ApiResponse({ status: 200, type: [UserQsetDto] })
     @ApiBearerAuth('JWT')

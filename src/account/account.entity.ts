@@ -20,7 +20,7 @@ export class Account extends TimeEntity {
     @Column({ unique:true, nullable: true })
     socialId: string;
 
-    @Column({ unique:true, nullable: true })
+    @Column({ nullable: true })
     email: string;
 
     @Column({ nullable: true })

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf } from 'class-validator';
+import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf, IsEnum } from 'class-validator';
 import { Choice, Question, UserQset, ViewHistory } from './question.entity';
 import { UserDto } from 'src/account/account.dto';
 import { Qtype } from './question.enum';
@@ -8,6 +8,8 @@ import { Qtype } from './question.enum';
 export class QuestionInCreate {
     
     @ApiProperty({example: 'personal'})
+    @IsNotEmpty()
+    @IsEnum(Qtype)
     Qtype: Qtype;
 
     @ApiProperty({example: '질문 제목'})
@@ -17,6 +19,7 @@ export class QuestionInCreate {
     @ApiProperty({example: ['투표 선택지1', '투표 선택지2']})
     @ValidateIf((obj) => obj.Qtype == Qtype.Personal)
     @IsArray()
+    @IsArrayNotNull()
     @ArrayMinSize(1)
     @ArrayMaxSize(6)
     choiceList: string[];
@@ -108,7 +111,7 @@ export class ChoiceDto {
 }
 
 export class ChoiceCountResponse {
-    
+
     constructor(Qtype: Qtype, count: number) {
         this.Qtype = Qtype;
         this.count = count;
@@ -279,4 +282,8 @@ export class UserQsetDto {
     @ApiProperty({ type: Date })
     endAt: Date;
 
+}
+
+function IsArrayNotNull(): (target: QuestionInCreate, propertyKey: "choiceList") => void {
+    throw new Error('Function not implemented.');
 }
