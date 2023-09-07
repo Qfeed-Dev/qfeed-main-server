@@ -65,7 +65,6 @@ export class ChatRepository extends Repository<Chat> {
             await this.save(chat);
             return chat;
         } catch (error) {
-            console.log(error);
             if (error.code === '23503') {
                 throw new NotFoundException(`chatroom [${chatroomId}] not found`);
             }

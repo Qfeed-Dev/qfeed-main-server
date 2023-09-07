@@ -1,4 +1,4 @@
-import { In, Like, Not, QueryFailedError, Repository } from "typeorm";
+import { In, IsNull, Like, Not, QueryFailedError, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Account, Follow } from "./account.entity";
@@ -85,6 +85,7 @@ export class AccountRepository extends Repository<Account> {
         const accounts = await this.find({
             where: {
                 id: Not(In(followingsIds.concat(user.id))),
+                nickname: Not(IsNull())
             },
             skip: offset,
             take: limit,

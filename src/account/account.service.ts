@@ -10,7 +10,7 @@ import { AccountRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
 import { Account, Follow } from './account.entity';
-import { In, Like, Not } from 'typeorm';
+import { In, IsNull, Like, Not } from 'typeorm';
 
 
 
@@ -229,6 +229,7 @@ export class AccountService {
         const count = await this.accountRepository.count({
             where: {
                 id: Not(In(followingIds.concat(user.id))),
+                nickname: Not(IsNull())
             },
         });
         return new UsersResponse(
