@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf, IsEnum, IsString } from 'class-validator';
 import { Choice, Question, UserQset, ViewHistory } from './question.entity';
 import { UserDto } from 'src/account/account.dto';
 import { Qtype } from './question.enum';
@@ -18,7 +18,8 @@ export class QuestionInCreate {
 
     @ApiProperty({example: ['투표 선택지1', '투표 선택지2']})
     @ValidateIf((obj) => obj.Qtype == Qtype.Personal)
-    @IsArray({ each: true })
+    @IsArray()
+    @IsString({ each: true })
     @ArrayMinSize(1)
     @ArrayMaxSize(6)
     choiceList: string[];
