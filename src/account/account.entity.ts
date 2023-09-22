@@ -84,3 +84,18 @@ export class Follow extends TimeEntity {
     targetUser: Account;
 
 }
+
+@Entity()
+@Unique(['user', 'targetUser'])
+export class Block extends TimeEntity {
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @ManyToOne(() => Account, (user) => user.followings, { onDelete: 'CASCADE' })
+    user: Account;
+
+    @ManyToOne(() => Account, (user) => user.followers, { onDelete: 'CASCADE' })
+    targetUser: Account;
+
+}
+

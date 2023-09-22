@@ -1,7 +1,7 @@
-import { In, IsNull, Like, Not, QueryFailedError, Repository } from "typeorm";
+import { In, IsNull, Like, Not, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { Account, Follow } from "./account.entity";
+import { Account, Block, Follow } from "./account.entity";
 import { AccountInSign, AccountInUpdate } from "./account.dto";
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
 
@@ -194,5 +194,45 @@ export class FollowRepository extends Repository<Follow> {
         })
     }
 
+
+}
+
+
+@CustomRepository(Block)
+export class BlockRepository extends Repository<Block> {
+
+    async createBlock(user: Account, targetUserId: number): Promise<Block> {
+        const block = this.create({
+            user: user, targetUser: {id: targetUserId}
+        });
+        return await this.save(block);
+    }
+
+    async fetchBlocking(user: Account,  offset: number, limit: number): Promise<Block[]> {
+        const blocks = await this.find({
+            where: { user: { id : user.id } },
+            skip: offset,
+            take: limit,
+        })
+        return blocks;
+    }
+
+    async fetchBlocked(user: Account, offset: number, limit: number): Promise<Block[]> {
+        const blocks = await this.find({
+            where: {
+                targetUser:  { id: user.id },
+            },
+            skip: offset,
+            take: limit,
+        })
+        return blocks;
+    }
+
+    async deleteBlock(user: Account, targetUserId: number): Promise<void> {
+        await this.delete({
+            user: { id: user.id },
+            targetUser: { id: targetUserId }
+        })
+    }
 
 }
