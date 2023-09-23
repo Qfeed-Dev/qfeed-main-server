@@ -14,16 +14,16 @@ export class ChatroomController {
         
     constructor(private readonly chatroomService: ChatroomService) {}
 
-    @ApiOperation({ summary: 'create chatroom' })
+    @ApiOperation({ summary: 'get or create chatroom' })
     @ApiResponse({ status: 201,  type: ChatroomDto })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
     @Post('/')
-    async createChatroom(
+    async getOrCreateChatroom(
         @CurrentUser() user: Account,
         @Body() chatroomInCreate: ChatroomInCreate,
     ): Promise<ChatroomDto> {
-        const chatroom = await this.chatroomService.createChatroom(user.id, chatroomInCreate.targetUserId, chatroomInCreate.title);
+        const chatroom = await this.chatroomService.getOrCreateChatroom(user.id, chatroomInCreate.targetUserId, chatroomInCreate.title);
         return new ChatroomDto(chatroom);
     }
 

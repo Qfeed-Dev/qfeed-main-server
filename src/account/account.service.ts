@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, InternalServerErrorException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, InternalServerErrorException, ConflictException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt'
 import { HttpService } from '@nestjs/axios';
 
@@ -9,7 +9,7 @@ import { AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, check
 import { AccountRepository, BlockRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
-import { Account, Block, Follow } from './account.entity';
+import { Account, Follow } from './account.entity';
 import { In, IsNull, Like, Not } from 'typeorm';
 
 
@@ -198,7 +198,7 @@ export class AccountService {
             await this.followRepository.createFollow(user, targetUserId);
         } catch (error) {
             if (error.code === '23505') throw new ConflictException("이미 팔로우 한 사용자입니다.");
-            else if (error.code === '23503') throw new BadRequestException("존재하지 않는 사용자입니다.");
+            else if (error.code === '23503') throw new NotFoundException("존재하지 않는 사용자입니다.");
             else throw new InternalServerErrorException("팔로우에 실패했습니다.");
         }
     }
@@ -275,7 +275,7 @@ export class AccountService {
             await this.blockRepository.createBlock(user, targetUserId);
         } catch (error) {
             if (error.code === '23505') throw new ConflictException("이미 차단한 사용자입니다.");
-            else if (error.code === '23503') throw new BadRequestException("존재하지 않는 사용자입니다.");
+            else if (error.code === '23503') throw new NotFoundException("존재하지 않는 사용자입니다.");
             else throw new InternalServerErrorException("차단에 실패했습니다.");
         }
     }

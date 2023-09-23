@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ChatRepository, ChatroomRepository } from './chatroom.repository';
 import { ChatResponse, ChatroomsResponse } from './chatroom.dto';
@@ -17,11 +17,20 @@ export class ChatroomService {
         
     ) {}
 
-    async createChatroom(ownerId: number, targetUserId: number, title: string): Promise<Chatroom> {
+    async getOrCreateChatroom(ownerId: number, targetUserId: number, title: string): Promise<Chatroom> {
         if (ownerId === targetUserId) {
             throw new ForbiddenException('You cannot create chatroom with yourself');
         }
-        return await this.chatroomRepository.createChatroom(ownerId, targetUserId, title);
+        try {
+            const chatroom = await this.chatroomRepository.getChatroomByTitle(ownerId, targetUserId, title);
+            if (chatroom) {
+                return chatroom;
+            }
+            return await this.chatroomRepository.createChatroom(ownerId, targetUserId, title);
+        } catch (error) {
+            if (error.code === '23503') throw new NotFoundException("존재하지 않는 유저입니다.");
+        }
+
     }
 
     async fetchChatrooms(userId: number, offset: number, limit: number): Promise<ChatroomsResponse> {
@@ -37,6 +46,8 @@ export class ChatroomService {
 
     async addUnreadCount(currentUserId: number, chatroomId: number, message: string): Promise<Chatroom> {
         const chatroom = await this.chatroomRepository.getChatroomById(chatroomId);
+        if (!chatroom) throw new NotFoundException("존재하지 않는 채팅방입니다.");
+        
         chatroom.lastMessage = message;
         if ( chatroom.owner.id == currentUserId ) { 
             chatroom.targetUserUnreadCount++;
@@ -50,6 +61,7 @@ export class ChatroomService {
 
     async resetUnreadCount(currentUserId: number, chatroomId: number): Promise<Chatroom> {
         const chatroom = await this.chatroomRepository.getChatroomById(chatroomId);
+        if (!chatroom) throw new NotFoundException("존재하지 않는 채팅방입니다.");
         if ( chatroom.owner.id == currentUserId ) {
             chatroom.ownerUnreadCount = 0;
         } else if ( chatroom.targetUser.id == currentUserId ) {
