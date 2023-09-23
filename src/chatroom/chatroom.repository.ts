@@ -10,19 +10,13 @@ import { Account } from "src/account/account.entity";
 export class ChatroomRepository extends Repository<Chatroom> {
     
     async createChatroom(ownerId: number, targetUserId: number, title: string): Promise<Chatroom> {
-        try {
-            const chatroom = this.create({
-                owner: { id: ownerId },
-                targetUser: { id: targetUserId },
-                title: title,
-            });
-            await this.save(chatroom);
-            return chatroom;
-        } catch (error) {
-            if (error.code === '23503') {
-                throw new NotFoundException(`user [${targetUserId}] not found`);
-            }
-        }
+        const chatroom = this.create({
+            owner: { id: ownerId },
+            targetUser: { id: targetUserId },
+            title: title,
+        });
+        await this.save(chatroom);
+        return chatroom;
     }
 
     async fetchChatrooms(userId: number, offset: number, limit: number): Promise<Chatroom[]> {
@@ -44,11 +38,21 @@ export class ChatroomRepository extends Repository<Chatroom> {
             relations: ['targetUser', 'owner'],
             where: { id: id }
         })
-        if(chatroom) {
-            return chatroom;
-        }
-        throw new NotFoundException(`Can't find chatroom with id ${id}`);
+        return chatroom;
     }
+
+    async getChatroomByTitle(ownerId: number, targetUserId: number, title: string): Promise<Chatroom> {
+        const chatroom = await this.findOne({
+            relations: ['targetUser', 'owner'],
+            where: { 
+                owner: { id: ownerId },
+                targetUser: { id: targetUserId },
+                title: title,
+            }
+        })
+        return chatroom;
+    }
+        
 
 }
 
