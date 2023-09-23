@@ -270,7 +270,8 @@ export class AccountService {
             throw new BadRequestException("자기 자신은 차단할 수 없습니다.");
         }
         try {
-            // TODO: await this.followRepository.deleteFollow(user, targetUserId);
+            // TODO: transaction 묶기
+            await this.followRepository.deleteFollow(user, targetUserId);
             await this.blockRepository.createBlock(user, targetUserId);
         } catch (error) {
             if (error.code === '23505') throw new ConflictException("이미 차단한 사용자입니다.");
