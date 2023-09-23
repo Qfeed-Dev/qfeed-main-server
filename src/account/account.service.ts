@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, InternalServerErrorException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt'
 import { HttpService } from '@nestjs/axios';
 
@@ -6,10 +6,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 
 import { AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, checkNickname, UserProfileDto, UsersProfileResponse } from './account.dto';
-import { AccountRepository, FollowRepository } from './account.repository';
+import { AccountRepository, BlockRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
-import { Account, Follow } from './account.entity';
+import { Account, Block, Follow } from './account.entity';
 import { In, IsNull, Like, Not } from 'typeorm';
 
 
@@ -22,6 +22,9 @@ export class AccountService {
         
         @InjectRepository(FollowRepository)
         private followRepository: FollowRepository,
+
+        @InjectRepository(BlockRepository)
+        private blockRepository: BlockRepository,
 
         private jwtService: JwtService,
         private readonly httpService: HttpService
@@ -86,7 +89,6 @@ export class AccountService {
 
     async fetch(user: Account, keyword: string, offset: number, limit: number): Promise<UsersProfileResponse> {
         const accounts = await this.accountRepository.fetchAccounts(keyword, offset, limit);
-        console.log(accounts)
         const count = await this.accountRepository.count({
             where: [
                 { name : Like(`%${keyword}%`) },
@@ -188,14 +190,31 @@ export class AccountService {
         }
     }
 
-    async followUser(user: Account, targetUser: Account): Promise<Account> {
-        await this.followRepository.createFollow(user, targetUser);
-        return targetUser;
+    async followUser(user: Account, targetUserId: number): Promise<void> {
+        if (user.id === targetUserId) {
+            throw new BadRequestException("자기 자신은 팔로우할 수 없습니다.");
+        }
+        try {
+            await this.followRepository.createFollow(user, targetUserId);
+        } catch (error) {
+            if (error.code === '23505') throw new ConflictException("이미 팔로우 한 사용자입니다.");
+            else if (error.code === '23503') throw new BadRequestException("존재하지 않는 사용자입니다.");
+            else throw new InternalServerErrorException("팔로우에 실패했습니다.");
+        }
     }
 
-    async unfollowUser(user: Account, targetUser: Account): Promise<Account> {
-        await this.followRepository.deleteFollow(user, targetUser);
-        return targetUser;
+    async unfollowUser(user: Account, targetUserId: number): Promise<void> {
+        if (user.id === targetUserId) {
+            throw new BadRequestException("자기 자신은 언팔로우 할 수 없습니다.");
+        }
+        try {
+            await this.followRepository.deleteFollow(user, targetUserId);   
+        } catch (error) {
+            throw new InternalServerErrorException("언팔로우에 실패했습니다.");
+        }
+
+        
+       
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
@@ -243,5 +262,35 @@ export class AccountService {
             unfollowingUsers.map((account: Account) => new UserDto(account)),
             count
         );
-    }  
+    }
+
+
+    async blockUser(user: Account, targetUserId: number): Promise<void> {
+        if (user.id === targetUserId) {
+            throw new BadRequestException("자기 자신은 차단할 수 없습니다.");
+        }
+        try {
+            // TODO: transaction 묶기
+            await this.followRepository.deleteFollow(user, targetUserId);
+            await this.blockRepository.createBlock(user, targetUserId);
+        } catch (error) {
+            if (error.code === '23505') throw new ConflictException("이미 차단한 사용자입니다.");
+            else if (error.code === '23503') throw new BadRequestException("존재하지 않는 사용자입니다.");
+            else throw new InternalServerErrorException("차단에 실패했습니다.");
+        }
+    }
+
+    async unblockUser(user: Account, targetUserId: number): Promise<void> {
+        if (user.id === targetUserId) {
+            throw new BadRequestException("자기 자신은 차단해제할 수 없습니다.");
+        }
+        try {
+            await this.blockRepository.deleteBlock(user, targetUserId);
+        } catch (error) {
+            throw new InternalServerErrorException("차단해제에 실패했습니다.");
+        }
+    }
+
+
+
 }

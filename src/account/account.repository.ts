@@ -1,7 +1,7 @@
-import { In, IsNull, Like, Not, QueryFailedError, Repository } from "typeorm";
+import { In, IsNull, Like, Not, Repository } from "typeorm";
 import * as bcrypt from 'bcryptjs';
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { Account, Follow } from "./account.entity";
+import { Account, Block, Follow } from "./account.entity";
 import { AccountInSign, AccountInUpdate } from "./account.dto";
 import { CustomRepository } from "src/db/typeorm-ex.decorator";
 
@@ -42,7 +42,7 @@ export class AccountRepository extends Repository<Account> {
 
     async getAccountById(id: number): Promise<Account> {
         const account = await this.findOne({
-            relations: ["followers.user",],
+            relations: ["followers.user", "blockers.user"],
             where: { id : id }
         })
         if(account) {
@@ -70,7 +70,7 @@ export class AccountRepository extends Repository<Account> {
 
     async fetchAccounts(keyword: string, offset: number, limit: number): Promise<Account[]> {
         const accounts = await this.find({
-            relations: ["followers.user",],
+            relations: ["followers.user", "blockers.user"],
             where: [
                 { name : Like(`%${keyword}%`) },
                 { nickname: Like(`%${keyword}%`) }
@@ -120,21 +120,11 @@ export class AccountRepository extends Repository<Account> {
 @CustomRepository(Follow)
 export class FollowRepository extends Repository<Follow> {
 
-    async createFollow(user: Account, targetUser: Account): Promise<Follow> {
-        if (user.id === targetUser.id) {
-            throw new ConflictException('can not follow myself');
-        }
-        try {
-            const Follow = this.create({
-                user: user, targetUser: targetUser
-            });
-            return await this.save(Follow);
-        } catch (error) {
-            if (error.code === '23505') {
-                return await this.getFollow(user, targetUser)
-            }
-            throw new InternalServerErrorException('create follow failed');
-        }
+    async createFollow(user: Account, targetUserId: number): Promise<Follow> {
+        const Follow = this.create({
+            user: user, targetUser: {id: targetUserId}
+        });
+        return await this.save(Follow);
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<Follow[]> {
@@ -187,12 +177,52 @@ export class FollowRepository extends Repository<Follow> {
         }
     }
 
-    async deleteFollow(user: Account, targetUser: Account): Promise<void> {
+    async deleteFollow(user: Account, targetUserId: number): Promise<void> {
         await this.delete({
             user: { id: user.id },
-            targetUser: { id: targetUser.id }
+            targetUser: { id: targetUserId }
         })
     }
 
+
+}
+
+
+@CustomRepository(Block)
+export class BlockRepository extends Repository<Block> {
+
+    async createBlock(user: Account, targetUserId: number): Promise<Block> {
+        const block = this.create({
+            user: user, targetUser: {id: targetUserId}
+        });
+        return await this.save(block);
+    }
+
+    async fetchBlockings(user: Account,  offset: number, limit: number): Promise<Block[]> {
+        const blocks = await this.find({
+            where: { user: { id : user.id } },
+            skip: offset,
+            take: limit,
+        })
+        return blocks;
+    }
+
+    async fetchBlocked(user: Account, offset: number, limit: number): Promise<Block[]> {
+        const blocks = await this.find({
+            where: {
+                targetUser:  { id: user.id },
+            },
+            skip: offset,
+            take: limit,
+        })
+        return blocks;
+    }
+
+    async deleteBlock(user: Account, targetUserId: number): Promise<void> {
+        await this.delete({
+            user: { id: user.id },
+            targetUser: { id: targetUserId }
+        })
+    }
 
 }
