@@ -42,7 +42,7 @@ export class AccountRepository extends Repository<Account> {
 
     async getAccountById(id: number): Promise<Account> {
         const account = await this.findOne({
-            relations: ["followers.user",],
+            relations: ["followers.user", "blockers.user"],
             where: { id : id }
         })
         if(account) {
@@ -70,7 +70,7 @@ export class AccountRepository extends Repository<Account> {
 
     async fetchAccounts(keyword: string, offset: number, limit: number): Promise<Account[]> {
         const accounts = await this.find({
-            relations: ["followers.user",],
+            relations: ["followers.user", "blockers.user"],
             where: [
                 { name : Like(`%${keyword}%`) },
                 { nickname: Like(`%${keyword}%`) }
@@ -208,7 +208,7 @@ export class BlockRepository extends Repository<Block> {
         return await this.save(block);
     }
 
-    async fetchBlocking(user: Account,  offset: number, limit: number): Promise<Block[]> {
+    async fetchBlockings(user: Account,  offset: number, limit: number): Promise<Block[]> {
         const blocks = await this.find({
             where: { user: { id : user.id } },
             skip: offset,

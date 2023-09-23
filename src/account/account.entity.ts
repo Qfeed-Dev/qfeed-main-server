@@ -68,6 +68,13 @@ export class Account extends TimeEntity {
     @OneToMany(() => Follow, (follow) => follow.targetUser)
     followers: Follow[]
 
+    @OneToMany(() => Block, (block) => block.user)
+    blockings: Block[]
+
+    @OneToMany(() => Block, (block) => block.targetUser)
+    blockers: Block[]
+
+
 }
 
 
@@ -91,10 +98,10 @@ export class Block extends TimeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Account, (user) => user.followings, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Account, (user) => user.blockings, { onDelete: 'CASCADE' })
     user: Account;
 
-    @ManyToOne(() => Account, (user) => user.followers, { onDelete: 'CASCADE' })
+    @ManyToOne(() => Account, (user) => user.blockers, { onDelete: 'CASCADE' })
     targetUser: Account;
 
 }

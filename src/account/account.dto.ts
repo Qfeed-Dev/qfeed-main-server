@@ -207,6 +207,7 @@ export class UserProfileDto {
         this.grade = account.grade;
         this.gender = account.gender;
         this.isFollowing = account.followers.some((follow) => follow.user.id === currentUserId);
+        this.isBlocking = account.blockers.some((block) => block.user.id === currentUserId);
     }
 
     @ApiProperty({example: 1})
@@ -232,6 +233,9 @@ export class UserProfileDto {
 
     @ApiProperty({example: true})
     isFollowing: boolean;
+
+    @ApiProperty({example: false})
+    isBlocking: boolean;
 }
 
 
