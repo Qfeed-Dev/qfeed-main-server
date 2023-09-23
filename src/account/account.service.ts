@@ -190,14 +190,31 @@ export class AccountService {
         }
     }
 
-    async followUser(user: Account, targetUser: Account): Promise<Account> {
-        await this.followRepository.createFollow(user, targetUser);
-        return targetUser;
+    async followUser(user: Account, targetUserId: number): Promise<void> {
+        if (user.id === targetUserId) {
+            throw new BadRequestException("자기 자신은 팔로우할 수 없습니다.");
+        }
+        try {
+            await this.followRepository.createFollow(user, targetUserId);
+        } catch (error) {
+            if (error.code === '23505') throw new ConflictException("이미 팔로우 한 사용자입니다.");
+            else if (error.code === '23503') throw new BadRequestException("존재하지 않는 사용자입니다.");
+            else throw new InternalServerErrorException("팔로우에 실패했습니다.");
+        }
     }
 
-    async unfollowUser(user: Account, targetUser: Account): Promise<Account> {
-        await this.followRepository.deleteFollow(user, targetUser);
-        return targetUser;
+    async unfollowUser(user: Account, targetUserId: number): Promise<void> {
+        if (user.id === targetUserId) {
+            throw new BadRequestException("자기 자신은 언팔로우 할 수 없습니다.");
+        }
+        try {
+            await this.followRepository.deleteFollow(user, targetUserId);   
+        } catch (error) {
+            throw new InternalServerErrorException("언팔로우에 실패했습니다.");
+        }
+
+        
+       
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
@@ -253,6 +270,7 @@ export class AccountService {
             throw new BadRequestException("자기 자신은 차단할 수 없습니다.");
         }
         try {
+            // TODO: await this.followRepository.deleteFollow(user, targetUserId);
             await this.blockRepository.createBlock(user, targetUserId);
         } catch (error) {
             if (error.code === '23505') throw new ConflictException("이미 차단한 사용자입니다.");

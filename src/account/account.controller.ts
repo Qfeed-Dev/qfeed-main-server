@@ -155,31 +155,29 @@ export class AccountController {
     }
 
     @ApiOperation({ summary: 'follow user' })
-    @ApiResponse({ status: 201, description: 'follow user', type: UserDto })
+    @ApiResponse({ status: 201, description: 'follow user'})
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
     @Post('/:targetUserId/follow')
     async followUser(
         @CurrentUser() user: Account,
         @Param('targetUserId', ParseIntPipe) targetUserId: number
-    ): Promise<UserDto> {
-        const targetUser = await this.accountService.getAccountById(targetUserId);
-        await this.accountService.followUser(user, targetUser);
-        return new UserDto(targetUser);
+    ): Promise<any> {
+        await this.accountService.followUser(user, targetUserId);
+        return { message: "success" }
     }
 
     @ApiOperation({ summary: 'unfollow user' })
-    @ApiResponse({ status: 200, description: 'unfollow user', type: UserDto })
+    @ApiResponse({ status: 200, description: 'unfollow user' })
     @ApiBearerAuth('JWT')
     @UseGuards(AuthGuard('jwt'))
     @Delete('/:targetUserId/unfollow')
     async unfollowUser(
         @CurrentUser() user: Account,
         @Param('targetUserId', ParseIntPipe) targetUserId: number
-    ): Promise<UserDto> {
-        const targetUser = await this.accountService.getAccountById(targetUserId);
-        await this.accountService.unfollowUser(user, targetUser);
-        return new UserDto(targetUser);
+    ): Promise<any> {
+        await this.accountService.unfollowUser(user, targetUserId);
+        return { message: "success" }
     }
 
     @ApiOperation({ summary: 'block user' })

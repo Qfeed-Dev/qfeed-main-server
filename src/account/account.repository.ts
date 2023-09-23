@@ -120,21 +120,11 @@ export class AccountRepository extends Repository<Account> {
 @CustomRepository(Follow)
 export class FollowRepository extends Repository<Follow> {
 
-    async createFollow(user: Account, targetUser: Account): Promise<Follow> {
-        if (user.id === targetUser.id) {
-            throw new ConflictException('can not follow myself');
-        }
-        try {
-            const Follow = this.create({
-                user: user, targetUser: targetUser
-            });
-            return await this.save(Follow);
-        } catch (error) {
-            if (error.code === '23505') {
-                return await this.getFollow(user, targetUser)
-            }
-            throw new InternalServerErrorException('create follow failed');
-        }
+    async createFollow(user: Account, targetUserId: number): Promise<Follow> {
+        const Follow = this.create({
+            user: user, targetUser: {id: targetUserId}
+        });
+        return await this.save(Follow);
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<Follow[]> {
@@ -187,10 +177,10 @@ export class FollowRepository extends Repository<Follow> {
         }
     }
 
-    async deleteFollow(user: Account, targetUser: Account): Promise<void> {
+    async deleteFollow(user: Account, targetUserId: number): Promise<void> {
         await this.delete({
             user: { id: user.id },
-            targetUser: { id: targetUser.id }
+            targetUser: { id: targetUserId }
         })
     }
 
