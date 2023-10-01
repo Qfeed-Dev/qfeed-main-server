@@ -1,11 +1,11 @@
 import { Injectable, BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm'; 
-import { EntityManager, In } from 'typeorm';
+import { EntityManager, In, Not } from 'typeorm';
 import { ChoiceRepository, ViewHistoryRepository, QuestionRepository, QsetRepository, UserQsetRepository} from './question.repository';
 import { Account, Follow } from 'src/account/account.entity';
 import { Choice, UserQset, Question, ViewHistory } from './question.entity';
 import { Qtype } from './question.enum';
-import { ChoiceInUserQ, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
+import { ChoiceInUserQ, QuestionFetchByQueryResponse, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
 import { AccountRepository } from 'src/account/account.repository';
 
 
@@ -39,24 +39,16 @@ export class QuestionService {
         return await this.questionRepository.createQuestion(user, QuestionInCreate);
     }
 
-    async fetchFollowingQuestions(user: Account, qtype: Qtype, offset: number, limit: number): Promise<QuestionsResponse> {
+    async fetchFollowingQuestions(user: Account, qtype: Qtype, offset: number, limit: number): Promise<QuestionFetchByQueryResponse> {
+        
         const currentUser = await this.accountRepository.findOne({
-            relations: ["followings", "followings.targetUser"], 
+            relations: ["followings", "followings.targetUser", "blockers", "blockers.targetUser"], 
             where: { id: user.id }
         })
-
-        const questions = await this.questionRepository.fetchQuestions(currentUser, qtype, offset, limit);
-        const count = await this.questionRepository.count({ 
-            where: { 
-                Qtype: qtype,
-                isBlind: false,
-                owner: { id: In(currentUser.followings.map( (follow: Follow) => follow.targetUser.id) ) },
-            }
-        });
+        const followingUserIds = currentUser.followings.map( (follow: Follow) => follow.targetUser.id )
+        const filteredFollowingUserIds = followingUserIds.filter( (userId) => !currentUser.blockers.some((block) => block.user.id === userId) );
         
-        return new QuestionsResponse(
-            count, questions.map((question: Question) => new QuestionFetchDto(user.id, question))
-        );
+        return await this.questionRepository.fetchQuestionsByQuery(user,filteredFollowingUserIds, qtype, offset, limit);
     }
 
     async fetchUserQuestions(

@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Patch, Query, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { QuestionService } from './question.service';
-import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto, ChoiceInUserQ, ChoiceCountResponse } from './question.dto';
+import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, ChoiceDto, UserQsetDto, ChoiceInUserQ, ChoiceCountResponse, QuestionFetchByQueryResponse } from './question.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
@@ -27,8 +27,8 @@ export class QuestionController {
     }
 
     @ApiOperation({ summary: 'fetch questions' })
-    @ApiResponse({ status: 200,  type: QuestionsResponse })
-    @ApiQuery({ name: 'Qtype', required: false, type: String })
+    @ApiResponse({ status: 200, type: QuestionFetchByQueryResponse })
+    @ApiQuery({ name: 'Qtype', required: false, enum: Qtype  })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiBearerAuth('JWT')
@@ -39,7 +39,7 @@ export class QuestionController {
         @Query('Qtype') qtype: Qtype = Qtype.Personal,
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
-    ): Promise<QuestionsResponse> {
+    ) {
         return await this.questionService.fetchFollowingQuestions(user, qtype, offset, limit);
     }
 

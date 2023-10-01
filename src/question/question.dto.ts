@@ -245,6 +245,56 @@ export class QuestionsResponse {
 }
 
 
+export class QuestionFetchByQueryDto {
+
+    @ApiProperty({ type: Number })
+    id: number;
+
+    @ApiProperty({ type: Number })
+    ownerId: number;
+
+    @ApiProperty({ type: String })
+    title: string;
+
+    @ApiProperty({ type: String })
+    Qtype: string;
+
+    @ApiProperty({ type: String })
+    backgroundImage: URL;
+
+    @ApiProperty({ type: Number })
+    choiceCount: number;
+
+    @ApiProperty({ type: Number })
+    viewCount: number;
+
+    @ApiProperty({ type: Boolean })
+    isViewed: boolean;
+
+    @ApiProperty({ type: Boolean })
+    isChoiced: boolean;
+
+    @ApiProperty({ type: Date })
+    createdAt: Date;
+
+}
+
+export class QuestionFetchByQueryResponse {
+        
+        constructor(data: QuestionFetchByQueryDto[], count: number) {
+            this.count = count;
+            this.data = data;
+        }
+    
+        @ApiProperty({type: Number})
+        count: number;
+        
+        @ApiProperty({type: [QuestionFetchByQueryDto]})
+        data: QuestionFetchByQueryDto[];
+
+}
+
+
 export class UserQsetDto {
 
     constructor(userQset: UserQset) {
