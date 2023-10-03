@@ -4,8 +4,8 @@ import { EntityManager, In, Not } from 'typeorm';
 import { ChoiceRepository, ViewHistoryRepository, QuestionRepository, QsetRepository, UserQsetRepository} from './question.repository';
 import { Account, Follow } from 'src/account/account.entity';
 import { Choice, UserQset, Question, ViewHistory } from './question.entity';
-import { Qtype } from './question.enum';
-import { ChoiceInUserQ, QuestionFetchByQueryResponse, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
+import { OrderBy, Qtype } from './question.enum';
+import { ChoiceInUserQ, QuestionFetchByQueryDto, QuestionFetchByQueryResponse, QuestionFetchDto, QuestionInCreate, QuestionsResponse } from './question.dto';
 import { AccountRepository } from 'src/account/account.repository';
 
 
@@ -39,16 +39,15 @@ export class QuestionService {
         return await this.questionRepository.createQuestion(user, QuestionInCreate);
     }
 
-    async fetchFollowingQuestions(user: Account, qtype: Qtype, offset: number, limit: number): Promise<QuestionFetchByQueryResponse> {
-        
+    async fetchFollowingQuestions(user: Account, qtype: Qtype, orderBy: OrderBy, offset: number, limit: number): Promise<QuestionFetchByQueryResponse> {
         const currentUser = await this.accountRepository.findOne({
             relations: ["followings", "followings.targetUser", "blockers", "blockers.targetUser"], 
             where: { id: user.id }
         })
         const followingUserIds = currentUser.followings.map( (follow: Follow) => follow.targetUser.id )
         const filteredFollowingUserIds = followingUserIds.filter( (userId) => !currentUser.blockers.some((block) => block.user.id === userId) );
-        
-        return await this.questionRepository.fetchQuestionsByQuery(user,filteredFollowingUserIds, qtype, offset, limit);
+        const [count, questions] = await this.questionRepository.fetchQuestionsByQuery(user,filteredFollowingUserIds, qtype, orderBy, offset, limit);
+        return new QuestionFetchByQueryResponse(count, questions.map((row: any) => new QuestionFetchByQueryDto(row)))
     }
 
     async fetchUserQuestions(

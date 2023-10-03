@@ -5,7 +5,7 @@ import { QuestionsResponse, QuestionDto, QuestionInCreate, ChoiceInCreate, Choic
 import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from 'src/account/get-user.decorator';
 import { Account } from 'src/account/account.entity';
-import { Qtype } from './question.enum';
+import { OrderBy, Qtype } from './question.enum';
 
 @Controller('questions')
 @ApiTags('Question')
@@ -29,6 +29,7 @@ export class QuestionController {
     @ApiOperation({ summary: 'fetch questions' })
     @ApiResponse({ status: 200, type: QuestionFetchByQueryResponse })
     @ApiQuery({ name: 'Qtype', required: false, enum: Qtype  })
+    @ApiQuery({ name: 'orderBy', required: false, enum: OrderBy  })
     @ApiQuery({ name: 'limit', required: false, type: Number })
     @ApiQuery({ name: 'offset', required: false, type: Number })
     @ApiBearerAuth('JWT')
@@ -37,10 +38,11 @@ export class QuestionController {
     async fetchQuestions(
         @CurrentUser() user: Account,
         @Query('Qtype') qtype: Qtype = Qtype.Personal,
+        @Query('orderBy') orderBy: OrderBy = OrderBy.CreatedAt,
         @Query('offset') offset: number = 0,
         @Query('limit') limit: number = 20,
     ) {
-        return await this.questionService.fetchFollowingQuestions(user, qtype, offset, limit);
+        return await this.questionService.fetchFollowingQuestions(user, qtype, orderBy, offset, limit);
     }
 
 

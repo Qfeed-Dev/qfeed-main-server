@@ -2,9 +2,9 @@ import { CustomRepository } from "src/db/typeorm-ex.decorator";
 import { ConflictException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Choice, Qset, UserQset, Question, ViewHistory } from "./question.entity";
 import { Between, In, Not, Repository } from "typeorm";
-import { QuestionFetchByQueryResponse, QuestionInCreate } from "./question.dto";
+import { QuestionInCreate } from "./question.dto";
 import { Account } from "src/account/account.entity";
-import { Qtype } from "./question.enum";
+import { OrderBy, Qtype } from "./question.enum";
 
 
 @CustomRepository(Question)
@@ -26,32 +26,39 @@ export class QuestionRepository extends Repository<Question> {
         }
     }
 
-    async fetchQuestionsByQuery(currentUser: Account, followingUserIds: number[] , qtype: Qtype, offset: number, limit: number): Promise<QuestionFetchByQueryResponse>{
+    async fetchQuestionsByQuery(currentUser: Account, followingUserIds: number[] , qtype: Qtype, orderBy: OrderBy, offset: number, limit: number): Promise<[number, any]>{
         const query = this.createQueryBuilder('question')
             .select([
                 'question.id as "id"',
                 'question.title as "title"',
-                'question.ownerId as "ownerId"',
                 'question.backgroundImage as "backgroundImage"',
                 'question.Qtype as "Qtype"',
                 'question.createdAt as "createdAt"',
-                'CAST(COUNT(viewHistory.id) AS INT) as "viewCount"',
-                'CAST(COUNT(choice.id) AS INT) as "choiceCount"',
+                `CAST(COUNT(viewHistory.id) AS INT) as "viewCount"`,
+                `CAST(COUNT(choice.id) AS INT) as "choiceCount"`,
                 `CAST(MAX(CASE WHEN viewHistory.userId = ${currentUser.id} THEN 1 ELSE 0 END) AS BOOLEAN) as "isViewed"`, 
                 `CAST(MAX(CASE WHEN choice.userId = ${currentUser.id} THEN 1 ELSE 0 END) AS BOOLEAN) as "isChoiced"`,
             ])
+            .addSelect([
+                'owner.id',
+                'owner.nickname',
+                'owner.profileImage',
+            ])
             .leftJoin('question.viewHistories', 'viewHistory')
             .leftJoin('question.choices', 'choice')
+            .leftJoin('question.owner', 'owner')
             .groupBy('question.id')
+            .addGroupBy('owner.id')
             .orderBy('"isViewed"')
             .addOrderBy('"isChoiced"')
+            .addOrderBy(`"${orderBy}"`, 'DESC')
             .where('question.ownerId IN (:...followingUserIds)', { followingUserIds })
             .andWhere('question.isBlind = false')
             .andWhere(`question.Qtype = '${qtype}'`)
 
         const questions = await query.limit(limit).offset(offset).getRawMany();
         const count = await query.getCount();
-        return new QuestionFetchByQueryResponse(questions, count);
+        return [count, questions]
     }
 
 

@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf, IsEnum, IsString } from 'class-validator';
 import { Choice, Question, UserQset, ViewHistory } from './question.entity';
-import { UserDto } from 'src/account/account.dto';
+import { UserDto, UserFetchDto } from 'src/account/account.dto';
 import { Qtype } from './question.enum';
+import { raw } from 'express';
 
 
 export class QuestionInCreate {
@@ -247,11 +248,24 @@ export class QuestionsResponse {
 
 export class QuestionFetchByQueryDto {
 
+    constructor(data: any) {
+        this.id = data.id;
+        this.owner = new UserFetchDto(data.owner_id, data.owner_nickname, data.owner_profileImage);
+        this.title = data.title;
+        this.Qtype = data.Qtype;
+        this.backgroundImage = data.backgroundImage;
+        this.choiceCount = data.choiceCount;
+        this.viewCount = data.viewCount;
+        this.isViewed = data.isViewed;
+        this.isChoiced = data.isChoiced;
+        this.createdAt = data.createdAt;
+    }
+
     @ApiProperty({ type: Number })
     id: number;
 
-    @ApiProperty({ type: Number })
-    ownerId: number;
+    @ApiProperty({ type: UserFetchDto })
+    owner: UserFetchDto;
 
     @ApiProperty({ type: String })
     title: string;
@@ -281,9 +295,9 @@ export class QuestionFetchByQueryDto {
 
 export class QuestionFetchByQueryResponse {
         
-        constructor(data: QuestionFetchByQueryDto[], count: number) {
+        constructor(count:number, data:QuestionFetchByQueryDto[]) {
             this.count = count;
-            this.data = data;
+            this.data = data
         }
     
         @ApiProperty({type: Number})
