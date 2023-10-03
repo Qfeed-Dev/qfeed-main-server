@@ -19,8 +19,8 @@ export class ChatroomRepository extends Repository<Chatroom> {
         return chatroom;
     }
 
-    async fetchChatrooms(userId: number, offset: number, limit: number): Promise<Chatroom[]> {
-        const chatrooms = await this.find({
+    async fetchChatrooms(userId: number, offset: number, limit: number): Promise<[Chatroom[], number]> {
+        return await this.findAndCount({
             relations: ['targetUser', 'owner'],
             where: [
                 { owner: { id: userId } },
@@ -30,7 +30,6 @@ export class ChatroomRepository extends Repository<Chatroom> {
             skip: offset,
             take: limit,
         })
-        return chatrooms;
     }
 
     async getChatroomById(id: number): Promise<Chatroom> {
@@ -76,16 +75,16 @@ export class ChatRepository extends Repository<Chat> {
         }
     }
 
-    async fetchChats(chatroomId: number, offset: number, limit: number): Promise<Chat[]> {
+    async fetchChats(chatroomId: number, offset: number, limit: number): Promise<[Chat[], number]> {
         try{
-            const chats = await this.find({
+            return await this.findAndCount({
                 relations: ['owner'],
                 where: { chatroom: { id: chatroomId } },
                 order: { createdAt: 'DESC' },
                 skip: offset,
                 take: limit,
             })
-            return chats;
+            
         } catch (error) {
             if (error.code === '23503') {
                 throw new NotFoundException(`chatroom [${chatroomId}] not found`);
