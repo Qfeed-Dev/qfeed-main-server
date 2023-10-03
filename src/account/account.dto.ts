@@ -196,6 +196,25 @@ export class UserDto {
 
 }
 
+export class UserFetchDto {
+
+    constructor(id: number, nickname: string, profileImage: URL) {
+        this.id = id;
+        this.nickname = nickname;
+        this.profileImage = profileImage;
+    }
+
+    @ApiProperty({ type: Number })
+    id: number;
+
+    @ApiProperty({ type: String })
+    nickname: string;
+
+    @ApiProperty({ type: String })
+    profileImage: URL;
+
+}
+
 export class UserProfileDto {
 
     constructor(currentUserId:number, account: Account) {

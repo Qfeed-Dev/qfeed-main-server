@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf, IsEnum, IsString } from 'class-validator';
 import { Choice, Question, UserQset, ViewHistory } from './question.entity';
-import { UserDto } from 'src/account/account.dto';
+import { UserDto, UserFetchDto } from 'src/account/account.dto';
 import { Qtype } from './question.enum';
+import { raw } from 'express';
 
 
 export class QuestionInCreate {
@@ -241,6 +242,69 @@ export class QuestionsResponse {
     
     @ApiProperty({type: [QuestionFetchDto]})
     data: QuestionFetchDto[];
+
+}
+
+
+export class QuestionFetchByQueryDto {
+
+    constructor(data: any) {
+        this.id = data.id;
+        this.owner = new UserFetchDto(data.owner_id, data.owner_nickname, data.owner_profileImage);
+        this.title = data.title;
+        this.Qtype = data.Qtype;
+        this.backgroundImage = data.backgroundImage;
+        this.choiceCount = data.choiceCount;
+        this.viewCount = data.viewCount;
+        this.isViewed = data.isViewed;
+        this.isChoiced = data.isChoiced;
+        this.createdAt = data.createdAt;
+    }
+
+    @ApiProperty({ type: Number })
+    id: number;
+
+    @ApiProperty({ type: UserFetchDto })
+    owner: UserFetchDto;
+
+    @ApiProperty({ type: String })
+    title: string;
+
+    @ApiProperty({ type: String })
+    Qtype: string;
+
+    @ApiProperty({ type: String })
+    backgroundImage: URL;
+
+    @ApiProperty({ type: Number })
+    choiceCount: number;
+
+    @ApiProperty({ type: Number })
+    viewCount: number;
+
+    @ApiProperty({ type: Boolean })
+    isViewed: boolean;
+
+    @ApiProperty({ type: Boolean })
+    isChoiced: boolean;
+
+    @ApiProperty({ type: Date })
+    createdAt: Date;
+
+}
+
+export class QuestionFetchByQueryResponse {
+        
+        constructor(count:number, data:QuestionFetchByQueryDto[]) {
+            this.count = count;
+            this.data = data
+        }
+    
+        @ApiProperty({type: Number})
+        count: number;
+        
+        @ApiProperty({type: [QuestionFetchByQueryDto]})
+        data: QuestionFetchByQueryDto[];
 
 }
 
