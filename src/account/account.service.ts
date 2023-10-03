@@ -88,14 +88,7 @@ export class AccountService {
     }
 
     async fetch(user: Account, keyword: string, offset: number, limit: number): Promise<UsersProfileResponse> {
-        const accounts = await this.accountRepository.fetchAccounts(keyword, offset, limit);
-        const count = await this.accountRepository.count({
-            where: [
-                { name : Like(`%${keyword}%`) },
-                { nickname: Like(`%${keyword}%`) }
-            ],
-        });
-        
+        const [accounts, count] = await this.accountRepository.fetchAccounts(keyword, offset, limit);
         return new UsersProfileResponse(
             accounts.map((account: Account) => new UserProfileDto(user.id, account)),
             count
@@ -218,14 +211,8 @@ export class AccountService {
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
-        const followings = await this.followRepository.fetchFollowings(user, keyword, offset, limit);
-        const count = await this.followRepository.count({
-            where: [
-                { user: {id: user.id}, targetUser: { name: Like(`%${keyword}%`) } },
-                { user: {id: user.id}, targetUser: { nickname: Like(`%${keyword}%`) } }
-            ]
-        });
-
+        const [followings, count] = await this.followRepository.fetchFollowings(user, keyword, offset, limit);
+        
         return new UsersResponse(
             followings.map((follow: Follow) => new UserDto(follow.targetUser)),
             count
@@ -233,11 +220,7 @@ export class AccountService {
     }
 
     async fetchFollowers(user: Account, offset: number, limit: number): Promise<UsersResponse> {
-        const followers = await this.followRepository.fetchFollowers(user, offset, limit);
-        const count = await this.followRepository.count(
-            { where: {"targetUser": {"id": user.id} } }
-        );
-                    
+        const [followers, count] = await this.followRepository.fetchFollowers(user, offset, limit);
         return new UsersResponse(
             followers.map((follow: Follow) => new UserDto(follow.user)),
             count
@@ -251,13 +234,7 @@ export class AccountService {
             where: { user: { id: user.id } },
         });
         const followingIds = followings.map((follow: Follow) => follow.targetUser.id);
-        const unfollowingUsers = await this.accountRepository.fetchUnfollowings(user, followingIds, offset, limit);
-        const count = await this.accountRepository.count({
-            where: {
-                id: Not(In(followingIds.concat(user.id))),
-                nickname: Not(IsNull())
-            },
-        });
+        const [unfollowingUsers, count] = await this.accountRepository.fetchUnfollowings(user, followingIds, offset, limit);
         return new UsersResponse(
             unfollowingUsers.map((account: Account) => new UserDto(account)),
             count

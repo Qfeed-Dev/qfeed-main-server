@@ -34,14 +34,8 @@ export class ChatroomService {
     }
 
     async fetchChatrooms(userId: number, offset: number, limit: number): Promise<ChatroomsResponse> {
-        const data = await this.chatroomRepository.fetchChatrooms(userId, offset, limit);
-        const count = await this.chatroomRepository.count(
-            { where: [
-                { owner: { id: userId } },
-                { targetUser: { id: userId } },
-            ]}
-        );
-        return new ChatroomsResponse(count, data);
+        const [chatRooms, count] = await this.chatroomRepository.fetchChatrooms(userId, offset, limit);
+        return new ChatroomsResponse(count, chatRooms);
     }
 
     async addUnreadCount(currentUserId: number, chatroomId: number, message: string): Promise<Chatroom> {
@@ -81,9 +75,8 @@ export class ChatroomService {
 
     async fetchChats(currentUserId: number, chatroomId: number, offset: number, limit: number): Promise<ChatResponse> {
         await this.resetUnreadCount(currentUserId, chatroomId);
-        const data = await this.chatRepository.fetchChats(chatroomId, offset, limit);
-        const count = await this.chatRepository.count({ where: { chatroom: { id: chatroomId } }});
-        return new ChatResponse(count, data);
+        const [chats, count] = await this.chatRepository.fetchChats(chatroomId, offset, limit);
+        return new ChatResponse(count, chats);
     }
 
 

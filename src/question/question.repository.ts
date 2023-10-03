@@ -56,15 +56,15 @@ export class QuestionRepository extends Repository<Question> {
             .andWhere('question.isBlind = false')
             .andWhere(`question.Qtype = '${qtype}'`)
 
-        const questions = await query.limit(limit).offset(offset).getRawMany();
-        const count = await query.getCount();
+            const questions = await query.limit(limit).offset(offset).getRawMany();
+            const count = await query.getCount();
         return [count, questions]
     }
 
 
 
-    async fetchUserQuestions(targetUserId: number, Qtype: Qtype, offset: number, limit: number): Promise<Question[]> {
-        const questions = await this.find({
+    async fetchUserQuestions(targetUserId: number, Qtype: Qtype, offset: number, limit: number): Promise<[Question[], number]> {
+        return await this.findAndCount({
             relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
             where: { 
                 owner : { id: targetUserId },
@@ -74,7 +74,6 @@ export class QuestionRepository extends Repository<Question> {
             skip: offset,
             take: limit,
         })
-        return questions
     }
 
 

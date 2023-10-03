@@ -57,8 +57,7 @@ export class QuestionService {
         offset: number,
         limit: number
     ): Promise<QuestionsResponse> {
-        const questions = await this.questionRepository.fetchUserQuestions(targetUserId, Qtype, offset, limit);
-        const count = await this.questionRepository.count({ where: { owner: {id: targetUserId} }});
+        const [questions, count] = await this.questionRepository.fetchUserQuestions(targetUserId, Qtype, offset, limit);
         return new QuestionsResponse(
             count, questions.map((question: Question) => new QuestionFetchDto(currentUserId, question))
         );

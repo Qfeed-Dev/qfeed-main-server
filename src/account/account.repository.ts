@@ -28,7 +28,8 @@ export class AccountRepository extends Repository<Account> {
 
     async createAccountBySocialInfo(socialId: string, socialEmail: string): Promise<Account> {
         try {
-            const account = this.create({"socialId": socialId, "email": socialEmail});  
+            const profileImageIndex = Math.floor(Math.random() * 10) + 1;
+            const account = this.create({"socialId": socialId, "email": socialEmail, "profileImage": new URL(`https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/backgroundImages/bg${profileImageIndex}.png`)});  
             await this.save(account);
             return account;
         } catch (error) {
@@ -68,8 +69,8 @@ export class AccountRepository extends Repository<Account> {
         return account;
     }
 
-    async fetchAccounts(keyword: string, offset: number, limit: number): Promise<Account[]> {
-        const accounts = await this.find({
+    async fetchAccounts(keyword: string, offset: number, limit: number): Promise<[Account[], number]> {
+        return await this.findAndCount({
             relations: ["followers.user", "blockers.user"],
             where: [
                 { name : Like(`%${keyword}%`) },
@@ -78,11 +79,10 @@ export class AccountRepository extends Repository<Account> {
             skip: offset,
             take: limit,
           });
-        return accounts;
     }
 
-    async fetchUnfollowings(user: Account, followingsIds:number[], offset: number, limit: number): Promise<Account[]> {
-        const accounts = await this.find({
+    async fetchUnfollowings(user: Account, followingsIds:number[], offset: number, limit: number): Promise<[Account[], number]> {
+        return await this.findAndCount({
             where: {
                 id: Not(In(followingsIds.concat(user.id))),
                 nickname: Not(IsNull())
@@ -90,7 +90,6 @@ export class AccountRepository extends Repository<Account> {
             skip: offset,
             take: limit,
         });
-        return accounts;
     }     
 
 
@@ -127,8 +126,8 @@ export class FollowRepository extends Repository<Follow> {
         return await this.save(Follow);
     }
 
-    async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<Follow[]> {
-        const follows = await this.find({
+    async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<[Follow[], number]> {
+        return await this.findAndCount({
             relations: ["targetUser"],
             where: [
                 { user: { id : user.id },  targetUser: { name: Like(`%${keyword}%`)} },
@@ -137,11 +136,10 @@ export class FollowRepository extends Repository<Follow> {
             skip: offset,
             take: limit,
         })
-        return follows;
     }
 
-    async fetchFollowers(user: Account, offset: number, limit: number): Promise<Follow[]> {
-        const follows = await this.find({
+    async fetchFollowers(user: Account, offset: number, limit: number): Promise<[Follow[], number]> {
+        return await this.findAndCount({
             relations: ["user"],
             where: {
                 targetUser:  { id: user.id },
@@ -149,7 +147,6 @@ export class FollowRepository extends Repository<Follow> {
             skip: offset,
             take: limit,
         })
-        return follows;
     }
 
     async fetchFollowByTargetUser(targetUser: Account, offset: number, limit: number): Promise<Follow[]> {
