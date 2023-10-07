@@ -53,11 +53,11 @@ export class Account extends TimeEntity {
     @Column({ nullable: true })
     birthday: Date;
 
-    @Column({type: 'varchar', nullable: true })
-    profileImage: URL;
+    @Column({ default: "https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/profileImages/qfeed-logo.png" })
+    profileImage: string;
 
-    @Column({type: 'varchar', nullable: true })
-    idCardImage: URL;
+    @Column({ nullable: true })
+    idCardImage: string;
 
     @OneToMany(() => Question, (question) => question.owner)
     questions: Question[]
