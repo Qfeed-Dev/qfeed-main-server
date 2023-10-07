@@ -154,10 +154,10 @@ export class AccountDto {
     birthday: Date;
 
     @ApiProperty({example: ""})
-    profileImage: URL;
+    profileImage: string;
 
     @ApiProperty({example: ""})
-    idCardImage: URL;
+    idCardImage: string;
 
 }
 
@@ -183,7 +183,7 @@ export class UserDto {
     nickname: string;
 
     @ApiProperty({example: "https://blog.kakaocdn.net/dn/KdDOI/btrmGgNlqab/qlMwwXNvHSbjN0kFeIoVuK/img.jpg"})
-    profileImage: URL;
+    profileImage: string;
 
     @ApiProperty({example: "큐피대학교"})
     schoolName: string;
@@ -198,7 +198,7 @@ export class UserDto {
 
 export class UserFetchDto {
 
-    constructor(id: number, nickname: string, profileImage: URL) {
+    constructor(id: number, nickname: string, profileImage: string) {
         this.id = id;
         this.nickname = nickname;
         this.profileImage = profileImage;
@@ -211,7 +211,7 @@ export class UserFetchDto {
     nickname: string;
 
     @ApiProperty({ type: String })
-    profileImage: URL;
+    profileImage: string;
 
 }
 
@@ -239,7 +239,7 @@ export class UserProfileDto {
     nickname: string;
 
     @ApiProperty({example: "https://blog.kakaocdn.net/dn/KdDOI/btrmGgNlqab/qlMwwXNvHSbjN0kFeIoVuK/img.jpg"})
-    profileImage: URL;
+    profileImage: string;
 
     @ApiProperty({example: "큐피대학교"})
     schoolName: string;
