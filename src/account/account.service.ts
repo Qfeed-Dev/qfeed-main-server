@@ -9,7 +9,7 @@ import { AccountInSign, AccountInUpdate, UsersResponse, TokenDto, UserDto, check
 import { AccountRepository, BlockRepository, FollowRepository } from './account.repository';
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
-import { Account, Follow } from './account.entity';
+import { Account, Block, Follow } from './account.entity';
 
 
 
@@ -104,14 +104,20 @@ export class AccountService {
     }
 
     async fetch(user: Account, keyword: string, offset: number, limit: number): Promise<UsersProfileResponse> {
-        const [accounts, count] = await this.accountRepository.fetchAccounts(keyword, offset, limit);
+        // 나를 차단한 유저를 제외함
+        const currentUser = await this.accountRepository.findOne({
+            relations: ["blockers.user"], 
+            where: { id: user.id }
+        })
+        const blockedUserIds = currentUser.blockers.map((block) => block.user.id);
+        const [accounts, count] = await this.accountRepository.fetchAccounts(keyword, blockedUserIds, offset, limit);
         return new UsersProfileResponse(
             accounts.map((account: Account) => new UserProfileDto(user.id, account)),
             count
         );
     }
     
-    async kakaoLogin(code: string, redirectUrl: string = `${process.env.BASE_URL}/account/kakao/callback`): Promise<TokenDto>{
+    async kakaoLogin(code: string, redirectUrl: string): Promise<TokenDto>{
         try {
             const accessToken = await this.getKakaoAccessToken(code, redirectUrl);
             const userInfo = await this.getKakaoUserInfo(accessToken);
@@ -224,8 +230,13 @@ export class AccountService {
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
-        const [followings, count] = await this.followRepository.fetchFollowings(user, keyword, offset, limit);
-        
+        // 나를 차단한 유저를 제외함. 내가 차단한 유저는 서비스로직에서 차단할 때 following 이 해제 됨
+        const currentUser = await this.accountRepository.findOne({
+            relations: ["blockers.user"], 
+            where: { id: user.id }
+        })
+        const blockedUserIds = currentUser.blockers.map((block) => block.user.id);
+        const [followings, count] = await this.followRepository.fetchFollowings(user, keyword, blockedUserIds, offset, limit);
         return new UsersResponse(
             followings.map((follow: Follow) => new UserDto(follow.targetUser)),
             count
@@ -242,12 +253,17 @@ export class AccountService {
 
 
     async fetchUnfollowings(user: Account, offset: number, limit: number): Promise<UsersResponse> {
-        const followings = await this.followRepository.find({
-            relations: ["targetUser"],
-            where: { user: { id: user.id } },
-        });
-        const followingIds = followings.map((follow: Follow) => follow.targetUser.id);
-        const [unfollowingUsers, count] = await this.accountRepository.fetchUnfollowings(user, followingIds, offset, limit);
+        // 기존 팔로잉 유저, 내가 차단한 유저와 나를 차단한 유저, 그리고 본인을 제외함
+        const currentUser = await this.accountRepository.findOne({
+            relations: ["followings.targetUser", "blockings.targetUser", "blockers.user" ], 
+            where: { id: user.id }
+        })
+        const followingIds = currentUser.followings.map((follow: Follow) => follow.targetUser.id);
+        const blockingUserIds = currentUser.blockings.map((block: Block) => block.targetUser.id);
+        const blockedUserIds = currentUser.blockers.map((block: Block) => block.user.id);
+        const exceptedIds = [...followingIds, ...blockingUserIds, ...blockedUserIds, user.id];
+
+        const [unfollowingUsers, count] = await this.accountRepository.fetchUnfollowings(exceptedIds, offset, limit);
         return new UsersResponse(
             unfollowingUsers.map((account: Account) => new UserDto(account)),
             count
@@ -280,7 +296,5 @@ export class AccountService {
             throw new InternalServerErrorException("차단해제에 실패했습니다.");
         }
     }
-
-
 
 }

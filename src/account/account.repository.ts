@@ -39,22 +39,22 @@ export class AccountRepository extends Repository<Account> {
         return account;
     }
 
-    async fetchAccounts(keyword: string, offset: number, limit: number): Promise<[Account[], number]> {
+    async fetchAccounts(keyword: string, blockedUserIds: number[], offset: number, limit: number): Promise<[Account[], number]> {
         return await this.findAndCount({
             relations: ["followers.user", "blockers.user"],
             where: [
-                { name : Like(`%${keyword}%`) },
-                { nickname: Like(`%${keyword}%`) }
+                { name : Like(`%${keyword}%`), id: Not(In(blockedUserIds)) },
+                { nickname: Like(`%${keyword}%`), id: Not(In(blockedUserIds)) },
             ],
             skip: offset,
             take: limit,
           });
     }
 
-    async fetchUnfollowings(user: Account, followingsIds:number[], offset: number, limit: number): Promise<[Account[], number]> {
+    async fetchUnfollowings(exceptedIds: number[], offset: number, limit: number): Promise<[Account[], number]> {
         return await this.findAndCount({
             where: {
-                id: Not(In(followingsIds.concat(user.id))),
+                id: Not(In(exceptedIds)),
                 nickname: Not(IsNull())
             },
             skip: offset,
@@ -81,12 +81,12 @@ export class FollowRepository extends Repository<Follow> {
         return await this.save(Follow);
     }
 
-    async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<[Follow[], number]> {
+    async fetchFollowings(user: Account, keyword: string, blockedUserIds: number[], offset: number, limit: number): Promise<[Follow[], number]> {
         return await this.findAndCount({
             relations: ["targetUser"],
             where: [
-                { user: { id : user.id },  targetUser: { name: Like(`%${keyword}%`)} },
-                { user: { id : user.id },  targetUser: { nickname: Like(`%${keyword}%`)} },
+                { user: { id : user.id },  targetUser: { name: Like(`%${keyword}%`), id: Not(In(blockedUserIds))} },
+                { user: { id : user.id },  targetUser: { nickname: Like(`%${keyword}%`), id: Not(In(blockedUserIds))} },
             ],
             skip: offset,
             take: limit,
