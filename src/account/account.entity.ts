@@ -53,7 +53,7 @@ export class Account extends TimeEntity {
     @Column({ nullable: true })
     birthday: Date;
 
-    @Column({ nullable: true, default: "https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/profileImages/qfeed-logo.png" })
+    @Column({ default: "https://qfeed-s3.s3.ap-northeast-2.amazonaws.com/files/profileImages/qfeed-logo.png" })
     profileImage: string;
 
     @Column({ nullable: true })
