@@ -3,7 +3,6 @@ import { IsNotEmpty, IsArray, ArrayMinSize, ArrayMaxSize, ValidateIf, IsEnum, Is
 import { Choice, Question, UserQset, ViewHistory } from './question.entity';
 import { UserDto, UserFetchDto } from 'src/account/account.dto';
 import { Qtype } from './question.enum';
-import { raw } from 'express';
 
 
 export class QuestionInCreate {

@@ -36,17 +36,22 @@ export class QuestionService {
     ) {}
     
     async createQuestion(user: Account, QuestionInCreate: QuestionInCreate): Promise<Question> {
+        if (QuestionInCreate.choiceList) {
+            const setList = new Set(QuestionInCreate.choiceList)
+            console.log(QuestionInCreate.choiceList.length , setList.size)
+            if (QuestionInCreate.choiceList.length !== setList.size ) throw new BadRequestException(`items of choiceList is duplicated`)
+        }
         return await this.questionRepository.createQuestion(user, QuestionInCreate);
     }
 
     async fetchFollowingQuestions(user: Account, qtype: Qtype, orderBy: OrderBy, offset: number, limit: number): Promise<QuestionFetchByQueryResponse> {
         const currentUser = await this.accountRepository.findOne({
-            relations: ["followings", "followings.targetUser", "blockers", "blockers.targetUser"], 
+            relations: ["followings.targetUser", "blockers.user"], 
             where: { id: user.id }
         })
         const followingUserIds = currentUser.followings.map( (follow: Follow) => follow.targetUser.id )
         const filteredFollowingUserIds = followingUserIds.filter( (userId) => !currentUser.blockers.some((block) => block.user.id === userId) );
-        const [count, questions] = await this.questionRepository.fetchQuestionsByQuery(user,filteredFollowingUserIds, qtype, orderBy, offset, limit);
+        const [count, questions] = await this.questionRepository.fetchQuestionsByQuery(user, filteredFollowingUserIds, qtype, orderBy, offset, limit);
         return new QuestionFetchByQueryResponse(count, questions.map((row: any) => new QuestionFetchByQueryDto(row)))
     }
 

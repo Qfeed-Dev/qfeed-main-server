@@ -27,6 +27,9 @@ export class QuestionRepository extends Repository<Question> {
     }
 
     async fetchQuestionsByQuery(currentUser: Account, followingUserIds: number[] , qtype: Qtype, orderBy: OrderBy, offset: number, limit: number): Promise<[number, any]>{
+        if (followingUserIds.length === 0) {
+            return [0, []]
+        }
         const query = this.createQueryBuilder('question')
             .select([
                 'question.id as "id"',
@@ -49,15 +52,14 @@ export class QuestionRepository extends Repository<Question> {
             .leftJoin('question.owner', 'owner')
             .groupBy('question.id')
             .addGroupBy('owner.id')
-            .orderBy('"isViewed"')
             .addOrderBy('"isChoiced"')
             .addOrderBy(`"${orderBy}"`, 'DESC')
             .where('question.ownerId IN (:...followingUserIds)', { followingUserIds })
             .andWhere('question.isBlind = false')
             .andWhere(`question.Qtype = '${qtype}'`)
 
-            const questions = await query.limit(limit).offset(offset).getRawMany();
-            const count = await query.getCount();
+        const questions = await query.limit(limit).offset(offset).getRawMany();
+        const count = await query.getCount();
         return [count, questions]
     }
 
