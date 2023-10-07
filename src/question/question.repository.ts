@@ -49,7 +49,6 @@ export class QuestionRepository extends Repository<Question> {
             .leftJoin('question.owner', 'owner')
             .groupBy('question.id')
             .addGroupBy('owner.id')
-            .orderBy('"isViewed"')
             .addOrderBy('"isChoiced"')
             .addOrderBy(`"${orderBy}"`, 'DESC')
             .where('question.ownerId IN (:...followingUserIds)', { followingUserIds })
