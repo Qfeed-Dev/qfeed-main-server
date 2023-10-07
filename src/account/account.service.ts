@@ -10,7 +10,6 @@ import { AccountRepository, BlockRepository, FollowRepository } from './account.
 import { AxiosRequestConfig } from 'axios';
 import { map, lastValueFrom } from 'rxjs';
 import { Account, Follow } from './account.entity';
-import { In, IsNull, Like, Not } from 'typeorm';
 
 
 
@@ -32,18 +31,27 @@ export class AccountService {
         
     
     async create(AccountInSign: AccountInSign): Promise<TokenDto> {
-        const account = await this.accountRepository.createAccount(AccountInSign)
-        const payload = { id: account.id, email: account.email };
-        const accessToken = this.jwtService.sign(payload);
-        
-        const currentTime = new Date();
-        const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
-        return new TokenDto(accessToken, expireTime);
+        try{
+            const account = await this.accountRepository.createAccount(AccountInSign)
+            const payload = { id: account.id, email: account.email };
+            
+            const accessToken = this.jwtService.sign(payload);
+            const currentTime = new Date();
+            const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
+            return new TokenDto(accessToken, expireTime);
+        } catch (error) {
+            if(error.code === '23505') throw new ConflictException('Existing email');
+            else throw new InternalServerErrorException('signup failed');
+            
+        }
     }
     
     async login(AccountInSign: AccountInSign): Promise<TokenDto> {
         const account = await this.accountRepository.getAccountByEmail(AccountInSign.email);
-        if(account && (await bcrypt.compare(AccountInSign.password, account.password))) {
+        if(!account) {
+            throw new NotFoundException(`Can't find account with email: ${AccountInSign.email}`);
+        }
+        else if(account && (await bcrypt.compare(AccountInSign.password, account.password))) {
             const payload = { id: account.id, email: account.email };
             const accessToken = this.jwtService.sign(payload);
 
@@ -75,16 +83,24 @@ export class AccountService {
 
     async getAccountById(id: number): Promise<Account> {
         const account = await this.accountRepository.getAccountById(id);
+        if (!account) throw new NotFoundException(`Can't find account with id: ${id}`);
         return account
     }
 
-    async updateAccount(id:number, AccountInUpdate: AccountInUpdate): Promise<Account> {
-        const account = await this.accountRepository.updateAccount(id, AccountInUpdate)
+    async updateAccount(id: number, AccountInUpdate: AccountInUpdate): Promise<Account> {
+        let account = await this.accountRepository.getAccountById(id);
+        if (!account) throw new NotFoundException(`Can't find account with id: ${id}`);
+        try {
+            account = await this.accountRepository.updateAccount(account, AccountInUpdate)
+        } catch (error) {
+            if(error.code === '23505') throw new ConflictException('Existing nickname');
+            else throw new InternalServerErrorException('update failed');
+        }
         return account
     }
     
     async delete(id: number) : Promise<void> {
-        await this.accountRepository.deleteAccountById(id)
+        await this.accountRepository.delete({id: id});
     }
 
     async fetch(user: Account, keyword: string, offset: number, limit: number): Promise<UsersProfileResponse> {
@@ -167,20 +183,20 @@ export class AccountService {
         
 
     private async socialLogin(socialId: string, socialEmail: string | null ): Promise<TokenDto> {
-        let account: Account;
-        try {
-            account = await this.accountRepository.getAccountBySocialId(socialId);
+        let account = await this.accountRepository.getAccountBySocialId(socialId);
+        if(!account) {
+            try {
+                account = await this.accountRepository.createAccountBySocialInfo(socialId, socialEmail);
+            } catch (error) {
+                if(error.code === '23505') throw new ConflictException('Existing socialInfo');
+                else throw new InternalServerErrorException('signup failed');
+            }
         }
-        catch (error){
-            account = await this.accountRepository.createAccountBySocialInfo(socialId, socialEmail);
-        }
-        finally{
-            const payload = { id: account.id };
-            const token = this.jwtService.sign(payload);
-            const currentTime = new Date();
-            const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
-            return new TokenDto(token, expireTime);
-        }
+        const payload = { id: account.id };
+        const token = this.jwtService.sign(payload);
+        const currentTime = new Date();
+        const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
+        return new TokenDto(token, expireTime);
     }
 
     async followUser(user: Account, targetUserId: number): Promise<void> {
@@ -205,9 +221,6 @@ export class AccountService {
         } catch (error) {
             throw new InternalServerErrorException("언팔로우에 실패했습니다.");
         }
-
-        
-       
     }
 
     async fetchFollowings(user: Account, keyword: string, offset: number, limit: number): Promise<UsersResponse> {
