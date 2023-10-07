@@ -36,6 +36,10 @@ export class QuestionService {
     ) {}
     
     async createQuestion(user: Account, QuestionInCreate: QuestionInCreate): Promise<Question> {
+        if (QuestionInCreate.choiceList) {
+            const setList = new Set(QuestionInCreate.choiceList)
+            if (QuestionInCreate.choiceList.length !== setList.size ) new BadRequestException(`items of choiceList is duplicated`)
+        }
         return await this.questionRepository.createQuestion(user, QuestionInCreate);
     }
 
