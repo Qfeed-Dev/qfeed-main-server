@@ -56,6 +56,7 @@ export class QuestionRepository extends Repository<Question> {
             .addOrderBy(`"${orderBy}"`, 'DESC')
             .where('question.ownerId IN (:...followingUserIds)', { followingUserIds })
             .andWhere('question.isBlind = false')
+            .andWhere('question.isDeleted = false')
             .andWhere(`question.Qtype = '${qtype}'`)
 
         const questions = await query.limit(limit).offset(offset).getRawMany();
@@ -72,6 +73,7 @@ export class QuestionRepository extends Repository<Question> {
                 owner : { id: targetUserId },
                 Qtype : Qtype,
                 isBlind : false,
+                isDeleted : false,
             },
             skip: offset,
             take: limit,
@@ -84,6 +86,9 @@ export class QuestionRepository extends Repository<Question> {
             relations: ['owner', 'viewHistories','viewHistories.user', 'choices', 'choices.user'],
             where: { id : id }
         })
+        if (question.isDeleted) {
+            return question;
+        }
         if(question) {
             return question;
         } else {

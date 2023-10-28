@@ -146,6 +146,19 @@ export class QuestionController {
         return new QuestionDto(question);
     }
 
+    @ApiOperation({ summary: 'soft delete question by id' })
+    @ApiResponse({ status: 200 })
+    @ApiBearerAuth('JWT')
+    @UseGuards(AuthGuard('jwt'))
+    @Patch('/:questionId')
+    async deleteQuestionById(
+        @CurrentUser() user: Account,
+        @Param('questionId', ParseIntPipe) questionId: number,
+    ): Promise<any> {
+        await this.questionService.softDeleteQuestionById(user, questionId);
+        return {"message": "success"};
+    }
+
     @ApiOperation({ summary: 'create choice' })
     @ApiResponse({ status: 201, type: ChoiceDto })
     @ApiBearerAuth('JWT')
