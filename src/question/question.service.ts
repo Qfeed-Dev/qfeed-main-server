@@ -73,6 +73,15 @@ export class QuestionService {
         return question;
     }
 
+    async softDeleteQuestionById(user: Account, id: number): Promise<void> {
+        const question = await this.questionRepository.getQuestionById(id);
+        if (question.owner.id !== user.id) {
+            throw new ForbiddenException(`Can't delete other user's question`)
+        }
+        question.isDeleted = true;
+        await this.questionRepository.save(question);
+    }
+
     
 
     async createChoice(user: Account, questionId: number, value: string): Promise<Choice> {

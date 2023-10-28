@@ -45,6 +45,9 @@ export class Question extends TimeEntity {
     @Column({ default: false })
     isBlind: boolean;
 
+    @Column({ default: false })
+    isDeleted: boolean;
+
     @OneToMany(() => Choice, (choice) => choice.question)
     choices: Choice[]
 
