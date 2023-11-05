@@ -37,8 +37,8 @@ export class QuestionRepository extends Repository<Question> {
                 'question.backgroundImage as "backgroundImage"',
                 'question.Qtype as "Qtype"',
                 'question.createdAt as "createdAt"',
-                `CAST(COUNT(viewHistory.id) AS INT) as "viewCount"`,
-                `CAST(COUNT(choice.id) AS INT) as "choiceCount"`,
+                `CAST(COUNT(DISTINCT viewHistory.id) AS INT) as "viewCount"`,
+                `CAST(COUNT(DISTINCT choice.id) AS INT) as "choiceCount"`,
                 `CAST(MAX(CASE WHEN viewHistory.userId = ${currentUser.id} THEN 1 ELSE 0 END) AS BOOLEAN) as "isViewed"`, 
                 `CAST(MAX(CASE WHEN choice.userId = ${currentUser.id} THEN 1 ELSE 0 END) AS BOOLEAN) as "isChoiced"`,
             ])
@@ -49,7 +49,7 @@ export class QuestionRepository extends Repository<Question> {
             ])
             .leftJoin('question.viewHistories', 'viewHistory')
             .leftJoin('question.choices', 'choice')
-            .leftJoin('question.owner', 'owner')
+            .innerJoin('question.owner', 'owner')
             .groupBy('question.id')
             .addGroupBy('owner.id')
             .addOrderBy('"isChoiced"')
@@ -63,7 +63,6 @@ export class QuestionRepository extends Repository<Question> {
         const count = await query.getCount();
         return [count, questions]
     }
-
 
 
     async fetchUserQuestions(targetUserId: number, Qtype: Qtype, offset: number, limit: number): Promise<[Question[], number]> {

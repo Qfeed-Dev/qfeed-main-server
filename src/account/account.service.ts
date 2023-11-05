@@ -37,7 +37,7 @@ export class AccountService {
             
             const accessToken = this.jwtService.sign(payload);
             const currentTime = new Date();
-            const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
+            const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 30 * 1000);
             return new TokenDto(accessToken, expireTime);
         } catch (error) {
             if(error.code === '23505') throw new ConflictException('Existing email');
@@ -56,7 +56,7 @@ export class AccountService {
             const accessToken = this.jwtService.sign(payload);
 
             const currentTime = new Date();
-            const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 2 * 1000);
+            const expireTime = new Date(currentTime.getTime() + 60 * 60 * 24 * 30 * 1000);
             return new TokenDto(accessToken, expireTime);
 
         } else {

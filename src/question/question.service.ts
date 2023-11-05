@@ -117,7 +117,6 @@ export class QuestionService {
         return todayUserQsets;
     }
 
-
     async createUserQset(user: Account) {
         const todayUserQsets = await this.userQsetRepository.getTodayUserQsets(user);
         if (todayUserQsets.length == 2) {
